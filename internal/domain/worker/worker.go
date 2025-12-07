@@ -7,10 +7,11 @@ import(
 )
 
 type Worker struct{
-	id uuid.UUID
-	first_name string
-	surname string
-	last_name string
-	taskList []task.Task
+	ID uuid.UUID
+	First_name string
+	Surname string
+	Last_name string
+	TaskList []task.Task
+	Is_active bool
 	// TODO : Добавить район для работы 
 }

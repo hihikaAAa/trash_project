@@ -7,11 +7,12 @@ import (
 )
 
 type User struct{
-	id uuid.UUID
-	first_name string
-	surname string
-	last_name string
-	address address.Address 
+	Id uuid.UUID
+	First_name string
+	Surname string
+	Last_name string
+	Addresses []address.Address 
 
 	// TODO : Добавить подписку
+	// Телефон/email для логина
 }

@@ -5,15 +5,20 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/hihikaAAa/TrashProject/internal/domain/address"
 )
+type Status string 
 
+const(
+	StatusOpen Status = "OPEN"
+	StatusInProgress Status = "IN PROGRESS"
+	StatusDone Status = "DONE"
+	StatusCanceled Status = "CANCELED"
+)
 type Task struct{
-	id uuid.UUID
-	clientName string
-	clientLastName string
-	taskInfo address.Address
-	workerID uuid.UUID
-	createdAt time.Time
-	closedAt time.Time
+	Id uuid.UUID
+	ClientID uuid.UUID
+	AddressID uuid.UUID
+	WorkerID *uuid.UUID
+	CreatedAt time.Time
+	ClosedAt *time.Time
 }
