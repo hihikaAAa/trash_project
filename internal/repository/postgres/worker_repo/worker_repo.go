@@ -1,4 +1,4 @@
-package postgres
+package workerrepo
 
 import (
 	"context"
@@ -14,7 +14,7 @@ type WorkerRepository struct{
 	db *sql.DB
 }
 
-func NewWorkerRepository (db *sql.DB) *WorkerRepository{
+func NewWorkerRepository(db *sql.DB) *WorkerRepository{
 	return &WorkerRepository{db: db}
 }
 
