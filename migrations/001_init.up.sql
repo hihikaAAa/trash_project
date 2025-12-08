@@ -2,16 +2,6 @@ BEGIN;
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
-CREATE TABLE users (
-    user_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    first_name TEXT NOT NULL,
-    surname TEXT NOT NULL,
-    last_name TEXT,
-    address_id UUID NOT NULL REFERENCES addresses(address_id) ON DELETE RESTRICT,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
 CREATE TABLE addresses(
     address_id        UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     street TEXT NOT NULL,
@@ -23,7 +13,16 @@ CREATE TABLE addresses(
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_addresses_user_id ON addresses (user_id);
+CREATE TABLE users (
+    user_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    first_name TEXT NOT NULL,
+    surname TEXT NOT NULL,
+    last_name TEXT,
+    address_id UUID NOT NULL REFERENCES addresses(address_id) ON DELETE RESTRICT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 CREATE INDEX idx_users_created_at ON users (created_at);
 
 CREATE TABLE workers (
@@ -40,7 +39,7 @@ CREATE INDEX idx_workers_is_active ON workers (is_active);
 CREATE INDEX idx_workers_created_at ON workers (created_at);
 CREATE INDEX idx_workers_updated_at ON workers (updated_at);
 
-CREATE TYPE task_status AS ENUM ('OPEN', 'IN PROGRESS', 'DONE', 'CANCELED');
+CREATE TYPE task_status AS ENUM ('OPEN', 'IN_PROGRESS', 'DONE', 'CANCELED');
 
 CREATE TABLE tasks (
     task_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -49,6 +48,7 @@ CREATE TABLE tasks (
     worker_id   UUID REFERENCES workers(worker_id) ON DELETE SET NULL,
     status task_status NOT NULL DEFAULT 'OPEN',
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     closed_at TIMESTAMPTZ
 );
 

@@ -10,14 +10,16 @@ type Status string
 
 const(
 	StatusOpen Status = "OPEN"
-	StatusInProgress Status = "IN PROGRESS"
+	StatusInProgress Status = "IN_PROGRESS"
 	StatusDone Status = "DONE"
 	StatusCanceled Status = "CANCELED"
 )
+
 type Task struct{
-	Id uuid.UUID
+	ID uuid.UUID
 	ClientID uuid.UUID
 	AddressID uuid.UUID
+	Status Status 
 	WorkerID *uuid.UUID
 	CreatedAt time.Time
 	ClosedAt *time.Time

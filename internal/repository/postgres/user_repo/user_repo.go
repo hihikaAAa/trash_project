@@ -50,7 +50,7 @@ func (r *UserRepository) CheckNotExists(ctx context.Context, name, surname, last
 		return nil
 	}
 	if err != nil{
-		return fmt.Errorf("%s, QueryRow: %w", op, err)
+		return fmt.Errorf("%s, QueryRowContext: %w", op, err)
 	}
 	return repoerrors.ErrUserExists
 }
@@ -171,5 +171,5 @@ func (r *UserRepository) UpdateUser(ctx context.Context, u *user.User) (*user.Us
 	if err != nil{
 		return nil, fmt.Errorf("%s, QueryRowContext: %w", op, err)
 	}
-	return  user, nil
+	return user, nil
 }

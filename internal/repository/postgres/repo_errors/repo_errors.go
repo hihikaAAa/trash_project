@@ -9,4 +9,5 @@ var(
 	ErrWorkerNotFound = errors.New("worker not found")
 	ErrAddressNotFound = errors.New("address not found")
 	ErrAddressExists = errors.New("address already exists")
+	ErrTaskNotFound = errors.New("task not found")
 )

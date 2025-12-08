@@ -74,7 +74,7 @@ func (r *AddressRepository) GetByID(ctx context.Context, id uuid.UUID) (*address
 		return nil, repoerrors.ErrAddressNotFound
 	}
 	if err != nil{
-		return nil , fmt.Errorf("%s, QueryRowContext, %w", op, err)
+		return nil , fmt.Errorf("%s, QueryRowContext: %w", op, err)
 	}
 
 	return a, nil
