@@ -50,7 +50,7 @@ func (r *WorkerRepository) CheckNotExists(ctx context.Context, name, surname, la
 		return nil
 	}
 	if err != nil{
-		return fmt.Errorf("%s, QueryRow: %w", op, err)
+		return fmt.Errorf("%s, QueryRowContext: %w", op, err)
 	}
 	return repoerrors.ErrWorkerExists
 }

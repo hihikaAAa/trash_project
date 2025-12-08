@@ -18,7 +18,9 @@ CREATE TABLE addresses(
     house_number TEXT NOT NULL,
     entrance TEXT,
     floor_number INTEGER NOT NULL,
-    apartment_number INTEGER NOT NULL
+    apartment_number INTEGER NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE INDEX idx_addresses_user_id ON addresses (user_id);
