@@ -3,15 +3,14 @@ package user
 import (
 	"github.com/google/uuid"
 
-	"github.com/hihikaAAa/TrashProject/internal/domain/address"
 )
 
 type User struct{
-	Id uuid.UUID
-	First_name string
+	ID uuid.UUID
+	FirstName string
 	Surname string
-	Last_name string
-	Addresses []address.Address 
+	LastName string
+	AddressID uuid.UUID
 
 	// TODO : Добавить подписку
 	// Телефон/email для логина
