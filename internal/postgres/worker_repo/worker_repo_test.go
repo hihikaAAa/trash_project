@@ -12,7 +12,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/hihikaAAa/TrashProject/internal/domain/worker"
-	repoerrors "github.com/hihikaAAa/TrashProject/internal/repository/postgres/repo_errors"
+	postgreserrors "github.com/hihikaAAa/TrashProject/internal/postgres/postgres_errors"
 )
 
 func newTestWorkerRepo(t *testing.T) (*WorkerRepository, sqlmock.Sqlmock, func()) {
@@ -84,7 +84,7 @@ func TestWorkerRepository_AddWorker_WorkerAlreadyExists(t *testing.T) {
 		WillReturnRows(rows)
 
 	err := repo.AddWorker(ctx, w)
-	if !errors.Is(err, repoerrors.ErrWorkerExists) {
+	if !errors.Is(err, postgreserrors.ErrWorkerExists) {
 		t.Fatalf("expected ErrWorkerExists, got: %v", err)
 	}
 
@@ -125,7 +125,7 @@ func TestWorkerRepository_CheckNotExists_Exists(t *testing.T) {
 		WillReturnRows(rows)
 
 	err := repo.CheckNotExists(ctx, "Ivan", "Ivanov", "Ivanovich")
-	if !errors.Is(err, repoerrors.ErrWorkerExists) {
+	if !errors.Is(err, postgreserrors.ErrWorkerExists) {
 		t.Fatalf("expected ErrWorkerExists, got: %v", err)
 	}
 
@@ -192,7 +192,7 @@ func TestWorkerRepository_SetIsActive_NotFound(t *testing.T) {
 		WillReturnError(sql.ErrNoRows)
 
 	_, err := repo.SetIsActive(ctx, id, true)
-	if !errors.Is(err, repoerrors.ErrWorkerNotFound) {
+	if !errors.Is(err, postgreserrors.ErrWorkerNotFound) {
 		t.Fatalf("expected ErrWorkerNotFound, got: %v", err)
 	}
 }
@@ -296,7 +296,7 @@ func TestWorkerRepository_GetByID_NotFound(t *testing.T) {
 		WillReturnError(sql.ErrNoRows)
 
 	_, err := repo.GetByID(ctx, id)
-	if !errors.Is(err, repoerrors.ErrWorkerNotFound) {
+	if !errors.Is(err, postgreserrors.ErrWorkerNotFound) {
 		t.Fatalf("expected ErrWorkerNotFound, got: %v", err)
 	}
 }
@@ -390,7 +390,7 @@ func TestWorkerRepository_DeleteWorker_NotFound(t *testing.T) {
 		WillReturnResult(sqlmock.NewResult(0, 0))
 
 	err := repo.DeleteWorker(ctx, id)
-	if !errors.Is(err, repoerrors.ErrWorkerNotFound) {
+	if !errors.Is(err, postgreserrors.ErrWorkerNotFound) {
 		t.Fatalf("expected ErrWorkerNotFound, got: %v", err)
 	}
 }
@@ -468,7 +468,7 @@ func TestWorkerRepository_UpdateWorker_NotFound(t *testing.T) {
 		WillReturnError(sql.ErrNoRows)
 
 	_, err := repo.UpdateWorker(ctx, w)
-	if !errors.Is(err, repoerrors.ErrWorkerNotFound) {
+	if !errors.Is(err, postgreserrors.ErrWorkerNotFound) {
 		t.Fatalf("expected ErrWorkerNotFound, got: %v", err)
 	}
 }

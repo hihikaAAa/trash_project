@@ -1,3 +1,4 @@
+// Package worker содержит модели и логику работы с работниками.
 package worker
 
 import (

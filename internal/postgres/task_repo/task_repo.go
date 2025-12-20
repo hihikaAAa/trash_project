@@ -1,3 +1,4 @@
+// Package taskrepo
 package taskrepo
 
 import (
@@ -7,7 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hihikaAAa/TrashProject/internal/domain/task"
-	repoerrors "github.com/hihikaAAa/TrashProject/internal/repository/postgres/repo_errors"
+	postgreserrors "github.com/hihikaAAa/TrashProject/internal/postgres/postgres_errors"
 )
 
 type TaskRepository struct {
@@ -45,7 +46,7 @@ func (r *TaskRepository) GetByID(ctx context.Context, id uuid.UUID) (*task.Task,
 	t := &task.Task{}
 	err := r.db.QueryRowContext(ctx, q, id).Scan(&t.ID, &t.ClientID, &t.AddressID, &t.WorkerID, &t.Status)
 	if err == sql.ErrNoRows {
-		return nil, fmt.Errorf("%s: %w", op, repoerrors.ErrTaskNotFound)
+		return nil, fmt.Errorf("%s: %w", op, postgreserrors.ErrTaskNotFound)
 	}
 	if err != nil {
 		return nil, fmt.Errorf("%s, QueryRowContext: %w", op, err)
@@ -168,7 +169,7 @@ func (r *TaskRepository) DeleteTask(ctx context.Context, id uuid.UUID) error {
 		return fmt.Errorf("%s, RowsAffected: %w", op, err)
 	}
 	if affected == 0 {
-		return fmt.Errorf("%s: %w", op, repoerrors.ErrTaskNotFound)
+		return fmt.Errorf("%s: %w", op, postgreserrors.ErrTaskNotFound)
 	}
 
 	return nil
@@ -189,7 +190,7 @@ func (r *TaskRepository) UpdateStatus(ctx context.Context, id uuid.UUID, status 
 		&task.ID, &task.ClientID, &task.AddressID, &task.WorkerID, &task.Status,
 	)
 	if err == sql.ErrNoRows {
-		return nil, fmt.Errorf("%s, %w", op, repoerrors.ErrTaskNotFound)
+		return nil, fmt.Errorf("%s, %w", op, postgreserrors.ErrTaskNotFound)
 	}
 	if err != nil {
 		return nil, fmt.Errorf("%s, QueryRowContext: %w", op, err)
@@ -233,7 +234,7 @@ func (r *TaskRepository) AssignWorker(ctx context.Context, taskID uuid.UUID, wor
 		&t.ID, &t.ClientID, &t.AddressID, &t.WorkerID, &t.Status,
 	)
 	if err == sql.ErrNoRows {
-		return nil, fmt.Errorf("%s, %w", op, repoerrors.ErrTaskNotFound)
+		return nil, fmt.Errorf("%s, %w", op, postgreserrors.ErrTaskNotFound)
 	}
 	if err != nil {
 		return nil, fmt.Errorf("%s, QueryRowContext: %w", op, err)

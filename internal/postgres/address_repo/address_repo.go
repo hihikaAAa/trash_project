@@ -1,3 +1,4 @@
+// Package addressrepo
 package addressrepo
 
 import (
@@ -8,7 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hihikaAAa/TrashProject/internal/domain/address"
-	repoerrors "github.com/hihikaAAa/TrashProject/internal/repository/postgres/repo_errors"
+	postgreserrors "github.com/hihikaAAa/TrashProject/internal/postgres/postgres_errors"
 )
 
 type AddressRepository struct {
@@ -27,7 +28,7 @@ func (r *AddressRepository) AddAddress(ctx context.Context, address *address.Add
 	VALUES ($1, $2, $3, $4, $5, $6)
 	`
 	err := r.CheckNotExists(ctx, address.Street, address.HouseNumber, address.Entrance, address.FloorNumber, address.ApartmentNumber)
-	if errors.Is(err, repoerrors.ErrAddressExists) {
+	if errors.Is(err, postgreserrors.ErrAddressExists) {
 		return nil
 	}
 	if err != nil {
@@ -56,7 +57,7 @@ func (r *AddressRepository) CheckNotExists(ctx context.Context, street, houseNum
 	if err != nil {
 		return fmt.Errorf("%s, QueryRowContext: %w", op, err)
 	}
-	return repoerrors.ErrAddressExists
+	return postgreserrors.ErrAddressExists
 }
 
 func (r *AddressRepository) GetByID(ctx context.Context, id uuid.UUID) (*address.Address, error) {
@@ -71,7 +72,7 @@ func (r *AddressRepository) GetByID(ctx context.Context, id uuid.UUID) (*address
 
 	err := r.db.QueryRowContext(ctx, q, id).Scan(&a.ID, &a.Street, &a.HouseNumber, &a.Entrance, &a.FloorNumber, &a.ApartmentNumber)
 	if err == sql.ErrNoRows {
-		return nil, repoerrors.ErrAddressNotFound
+		return nil, postgreserrors.ErrAddressNotFound
 	}
 	if err != nil {
 		return nil, fmt.Errorf("%s, QueryRowContext: %w", op, err)
@@ -128,7 +129,7 @@ func (r *AddressRepository) DeleteAddress(ctx context.Context, id uuid.UUID) err
 		return fmt.Errorf("%s, RowsAffected: %w", op, err)
 	}
 	if affected == 0 {
-		return fmt.Errorf("%s: %w", op, repoerrors.ErrAddressNotFound)
+		return fmt.Errorf("%s: %w", op, postgreserrors.ErrAddressNotFound)
 	}
 
 	return nil
@@ -150,7 +151,7 @@ func (r *AddressRepository) UpdateAddress(ctx context.Context, addr *address.Add
 		&a.ID, &a.Street, &a.HouseNumber, &a.Entrance, &a.FloorNumber, &a.ApartmentNumber,
 	)
 	if err == sql.ErrNoRows {
-		return nil, fmt.Errorf("%s, %w", op, repoerrors.ErrAddressNotFound)
+		return nil, fmt.Errorf("%s, %w", op, postgreserrors.ErrAddressNotFound)
 	}
 	if err != nil {
 		return nil, fmt.Errorf("%s, QueryRowContext: %w", op, err)

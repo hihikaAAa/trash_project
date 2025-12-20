@@ -1,3 +1,4 @@
+// Package task содержит модели и логику работы с задачами.
 package task
 
 import (

@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/hihikaAAa/TrashProject/internal/domain/address"
-	repoerrors "github.com/hihikaAAa/TrashProject/internal/repository/postgres/repo_errors"
+	postgreserrors "github.com/hihikaAAa/TrashProject/internal/postgres/postgres_errors"
 )
 
 func newTestAddressRepo(t *testing.T) (*AddressRepository, sqlmock.Sqlmock, func()) {
@@ -125,7 +125,7 @@ func TestAddressRepository_CheckNotExists_Exists(t *testing.T) {
 		WillReturnRows(rows)
 
 	err := repo.CheckNotExists(ctx, "Main", "10", "1", 5, 12)
-	if !errors.Is(err, repoerrors.ErrAddressExists) {
+	if !errors.Is(err, postgreserrors.ErrAddressExists) {
 		t.Fatalf("expected ErrAddressExists, got: %v", err)
 	}
 }
@@ -184,7 +184,7 @@ func TestAddressRepository_GetByID_NotFound(t *testing.T) {
 		WillReturnError(sql.ErrNoRows)
 
 	_, err := repo.GetByID(ctx, id)
-	if !errors.Is(err, repoerrors.ErrAddressNotFound) {
+	if !errors.Is(err, postgreserrors.ErrAddressNotFound) {
 		t.Fatalf("expected ErrAddressNotFound, got: %v", err)
 	}
 }
@@ -278,7 +278,7 @@ func TestAddressRepository_DeleteAddress_NotFound(t *testing.T) {
 		WillReturnResult(sqlmock.NewResult(0, 0))
 
 	err := repo.DeleteAddress(ctx, id)
-	if !errors.Is(err, repoerrors.ErrAddressNotFound) {
+	if !errors.Is(err, postgreserrors.ErrAddressNotFound) {
 		t.Fatalf("expected ErrAddressNotFound, got: %v", err)
 	}
 }
@@ -353,7 +353,7 @@ func TestAddressRepository_UpdateAddress_NotFound(t *testing.T) {
 		WillReturnError(sql.ErrNoRows)
 
 	_, err := repo.UpdateAddress(ctx, a)
-	if !errors.Is(err, repoerrors.ErrAddressNotFound) {
+	if !errors.Is(err, postgreserrors.ErrAddressNotFound) {
 		t.Fatalf("expected ErrAddressNotFound, got: %v", err)
 	}
 }

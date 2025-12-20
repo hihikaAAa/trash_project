@@ -1,3 +1,4 @@
+// Package user содержит модели и логику работы с юзерами.
 package user
 
 import (

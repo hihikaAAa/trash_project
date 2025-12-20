@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/hihikaAAa/TrashProject/internal/domain/task"
-	repoerrors "github.com/hihikaAAa/TrashProject/internal/repository/postgres/repo_errors"
+	postgreserrors "github.com/hihikaAAa/TrashProject/internal/postgres/postgres_errors"
 )
 
 func newTestTaskRepo(t *testing.T) (*TaskRepository, sqlmock.Sqlmock, func()) {
@@ -86,7 +86,7 @@ func TestTaskRepository_GetByID_NotFound(t *testing.T) {
 		WillReturnError(sql.ErrNoRows)
 
 	_, err := repo.GetByID(ctx, id)
-	if !errors.Is(err, repoerrors.ErrTaskNotFound) {
+	if !errors.Is(err, postgreserrors.ErrTaskNotFound) {
 		t.Fatalf("expected ErrTaskNotFound, got %v", err)
 	}
 }
@@ -287,7 +287,7 @@ func TestTaskRepository_DeleteTask_NotFound(t *testing.T) {
 		WillReturnResult(sqlmock.NewResult(0, 0))
 
 	err := repo.DeleteTask(ctx, id)
-	if !errors.Is(err, repoerrors.ErrTaskNotFound) {
+	if !errors.Is(err, postgreserrors.ErrTaskNotFound) {
 		t.Fatalf("expected ErrTaskNotFound, got %v", err)
 	}
 }

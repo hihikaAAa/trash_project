@@ -11,7 +11,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/hihikaAAa/TrashProject/internal/domain/user"
-	repoerrors "github.com/hihikaAAa/TrashProject/internal/repository/postgres/repo_errors"
+	postgreserrors "github.com/hihikaAAa/TrashProject/internal/postgres/postgres_errors"
 )
 
 func newTestUserRepo(t *testing.T) (*UserRepository, sqlmock.Sqlmock, func()) {
@@ -100,7 +100,7 @@ func TestUserRepository_AddUser_UserAlreadyExists(t *testing.T) {
 		WillReturnRows(rows)
 
 	err := repo.AddUser(ctx, u)
-	if !errors.Is(err, repoerrors.ErrUserExists) {
+	if !errors.Is(err, postgreserrors.ErrUserExists) {
 		t.Fatalf("expected ErrUserExists, got: %v", err)
 	}
 
@@ -153,7 +153,7 @@ func TestUserRepository_CheckNotExists_Exists(t *testing.T) {
 		WillReturnRows(rows)
 
 	err := repo.CheckNotExists(ctx, "Ivan", "Ivanov", "Ivanovich")
-	if !errors.Is(err, repoerrors.ErrUserExists) {
+	if !errors.Is(err, postgreserrors.ErrUserExists) {
 		t.Fatalf("expected ErrUserExists, got: %v", err)
 	}
 }
@@ -234,7 +234,7 @@ func TestUserRepository_GetByID_NotFound(t *testing.T) {
 		WillReturnError(sql.ErrNoRows)
 
 	_, err := repo.GetByID(ctx, id)
-	if !errors.Is(err, repoerrors.ErrUserNotFound) {
+	if !errors.Is(err, postgreserrors.ErrUserNotFound) {
 		t.Fatalf("expected ErrUserNotFound, got: %v", err)
 	}
 }
@@ -287,7 +287,7 @@ func TestUserRepository_FindByFullName_NotFound(t *testing.T) {
 		WillReturnError(sql.ErrNoRows)
 
 	_, err := repo.FindByFullName(ctx, "Ivan", "Ivanov", "Ivanovich")
-	if !errors.Is(err, repoerrors.ErrUserNotFound) {
+	if !errors.Is(err, postgreserrors.ErrUserNotFound) {
 		t.Fatalf("expected ErrUserNotFound, got: %v", err)
 	}
 }
@@ -385,7 +385,7 @@ func TestUserRepository_DeleteUser_NotFound(t *testing.T) {
 		WillReturnResult(sqlmock.NewResult(0, 0))
 
 	err := repo.DeleteUser(ctx, id)
-	if !errors.Is(err, repoerrors.ErrUserNotFound) {
+	if !errors.Is(err, postgreserrors.ErrUserNotFound) {
 		t.Fatalf("expected ErrUserNotFound, got: %v", err)
 	}
 }
@@ -462,7 +462,7 @@ func TestUserRepository_UpdateUser_NotFound(t *testing.T) {
 		WillReturnError(sql.ErrNoRows)
 
 	_, err := repo.UpdateUser(ctx, u)
-	if !errors.Is(err, repoerrors.ErrUserNotFound) {
+	if !errors.Is(err, postgreserrors.ErrUserNotFound) {
 		t.Fatalf("expected ErrUserNotFound, got: %v", err)
 	}
 }
