@@ -28,6 +28,17 @@ func NewPerson(name, surname, lastName string)(*Person ,error){
 	return &p, nil
 }
 
+func (p *Person) UpdatePerson(name, surname, lastName string) error{
+	p.FirstName = name
+	p.Surname = surname
+	p.LastName = lastName
+
+	if err := p.Validate(); err != nil{
+		return fmt.Errorf("validate : %w", err)
+	}
+	return nil
+}
+
 func (p *Person) Validate() error{
 	return validate.Struct(p)
 }

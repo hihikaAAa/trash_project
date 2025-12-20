@@ -7,6 +7,8 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
+
+	domainerrors "github.com/hihikaAAa/TrashProject/internal/domain/domain_errors"
 )
 
 var validate = validator.New()
@@ -49,4 +51,46 @@ func NewTask (clientID, addressID uuid.UUID) (*Task, error){
 
 func (t *Task) Validate()error{
 	return validate.Struct(t)
+}
+
+func (t *Task) CheckPossibleStatus() error{
+	if t.Status == StatusCanceled{
+		return domainerrors.ErrTaskCanceled
+	}
+	if t.Status == StatusDone{
+		return domainerrors.ErrTaskDone
+	}
+	return nil
+}
+
+func (t *Task) StartTask() error{
+	if err := t.CheckPossibleStatus(); err != nil{
+		return err
+	}
+	t.Status = StatusInProgress
+	return nil
+}
+
+func (t *Task) CompleteTask() error{
+	if err := t.CheckPossibleStatus(); err != nil{
+		return err
+	}
+	t.Status = StatusDone
+	return nil
+}
+
+func (t *Task) CancelTask() error{
+	if err := t.CheckPossibleStatus(); err != nil{
+		return err
+	}
+	t.Status = StatusCanceled
+	return nil
+}
+
+func (t *Task) DropTask() error{
+	if err := t.CheckPossibleStatus(); err != nil{
+		return err
+	}
+	t.Status = StatusOpen
+	return nil
 }

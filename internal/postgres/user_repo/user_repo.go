@@ -21,7 +21,7 @@ func NewUserRepository(db *sql.DB) *UserRepository {
 }
 
 func (r *UserRepository) AddUser(ctx context.Context, user *user.User) error {
-	const op = "internal.repository.postgres.user_repo.AddUser"
+	const op = "internal.postgres.user_repo.AddUser"
 
 	const q = `
 	INSERT INTO users(user_id, first_name, surname, last_name, address_id)
@@ -39,7 +39,7 @@ func (r *UserRepository) AddUser(ctx context.Context, user *user.User) error {
 }
 
 func (r *UserRepository) CheckNotExists(ctx context.Context, name, surname, lastName string) error {
-	const op = "internal.repository.postgres.user_repo.CheckNotExists"
+	const op = "internal.postgres.user_repo.CheckNotExists"
 
 	const q = `
 	SELECT 1 
@@ -58,7 +58,7 @@ func (r *UserRepository) CheckNotExists(ctx context.Context, name, surname, last
 }
 
 func (r *UserRepository) GetByID(ctx context.Context, id uuid.UUID) (*user.User, error) {
-	const op = "internal.repository.postgres.user_repo.GetByID"
+	const op = "internal.postgres.user_repo.GetByID"
 
 	const q = `
 	SELECT user_id, first_name, surname, last_name, address_id
@@ -78,7 +78,7 @@ func (r *UserRepository) GetByID(ctx context.Context, id uuid.UUID) (*user.User,
 }
 
 func (r *UserRepository) FindByFullName(ctx context.Context, name, surname, lastName string) (*user.User, error) {
-	const op = "internal.repository.postgres.user_repo.FindByFullName"
+	const op = "internal.postgres.user_repo.FindByFullName"
 
 	const q = `
 	SELECT user_id, first_name, surname, last_name, address_id
@@ -98,7 +98,7 @@ func (r *UserRepository) FindByFullName(ctx context.Context, name, surname, last
 }
 
 func (r *UserRepository) List(ctx context.Context) ([]*user.User, error) {
-	const op = "internal.repository.postgres.user_repo.List"
+	const op = "internal.postgres.user_repo.List"
 
 	const q = `
 	SELECT user_id, first_name, surname, last_name, address_id
@@ -129,7 +129,7 @@ func (r *UserRepository) List(ctx context.Context) ([]*user.User, error) {
 }
 
 func (r *UserRepository) DeleteUser(ctx context.Context, id uuid.UUID) error {
-	const op = "internal.repository.postgres.user_repo.DeleteUser"
+	const op = "internal.postgres.user_repo.DeleteUser"
 
 	const q = `
 		DELETE FROM users
@@ -153,7 +153,7 @@ func (r *UserRepository) DeleteUser(ctx context.Context, id uuid.UUID) error {
 }
 
 func (r *UserRepository) UpdateUser(ctx context.Context, u *user.User) (*user.User, error) {
-	const op = "internal.repository.postgres.user_repo.UpdateUser"
+	const op = "internal.postgres.user_repo.UpdateUser"
 
 	const q = `
 	UPDATE users

@@ -21,7 +21,7 @@ func NewWorkerRepository(db *sql.DB) *WorkerRepository {
 }
 
 func (r *WorkerRepository) AddWorker(ctx context.Context, worker *worker.Worker) error {
-	const op = "internal.repository.postgres.worker_repo.AddWorker"
+	const op = "internal.postgres.worker_repo.AddWorker"
 
 	const q = `
 	INSERT INTO workers(worker_id, first_name,surname,last_name,is_active)
@@ -41,7 +41,7 @@ func (r *WorkerRepository) AddWorker(ctx context.Context, worker *worker.Worker)
 }
 
 func (r *WorkerRepository) CheckNotExists(ctx context.Context, name, surname, lastName string) error {
-	const op = "internal.repository.postgres.worker_repo.CheckNotExists"
+	const op = "internal.postgres.worker_repo.CheckNotExists"
 
 	const q = `
 	SELECT 1 FROM workers WHERE first_name = $1 AND surname = $2 AND last_name = $3
@@ -58,7 +58,7 @@ func (r *WorkerRepository) CheckNotExists(ctx context.Context, name, surname, la
 }
 
 func (r *WorkerRepository) SetIsActive(ctx context.Context, id uuid.UUID, active bool) (*worker.Worker, error) {
-	const op = "internal.repository.postgres.worker_repo.SetIsActive"
+	const op = "internal.postgres.worker_repo.SetIsActive"
 
 	const q = `
 	UPDATE workers 
@@ -79,7 +79,7 @@ func (r *WorkerRepository) SetIsActive(ctx context.Context, id uuid.UUID, active
 }
 
 func (r *WorkerRepository) FindActive(ctx context.Context) ([]*worker.Worker, error) {
-	const op = "internal.repository.postgres.worker_repo.FindActive"
+	const op = "internal.postgres.worker_repo.FindActive"
 
 	const q = `
 	SELECT worker_id, first_name, surname, is_active
@@ -109,7 +109,7 @@ func (r *WorkerRepository) FindActive(ctx context.Context) ([]*worker.Worker, er
 }
 
 func (r *WorkerRepository) GetByID(ctx context.Context, id uuid.UUID) (*worker.Worker, error) {
-	const op = "internal.repository.postgres.worker_repo.GetByID"
+	const op = "internal.postgres.worker_repo.GetByID"
 
 	const q = `
 	SELECT worker_id, first_name, surname, last_name, is_active
@@ -129,7 +129,7 @@ func (r *WorkerRepository) GetByID(ctx context.Context, id uuid.UUID) (*worker.W
 }
 
 func (r *WorkerRepository) List(ctx context.Context) ([]*worker.Worker, error) {
-	const op = "internal.repository.postgres.worker_repo.List"
+	const op = "internal.postgres.worker_repo.List"
 
 	const q = `
 	SELECT worker_id, first_name, surname, last_name, is_active
@@ -160,7 +160,7 @@ func (r *WorkerRepository) List(ctx context.Context) ([]*worker.Worker, error) {
 }
 
 func (r *WorkerRepository) DeleteWorker(ctx context.Context, id uuid.UUID) error {
-	const op = "internal.repository.postgres.worker_repo.DeleteWorker"
+	const op = "internal.postgres.worker_repo.DeleteWorker"
 
 	const q = `
 		DELETE FROM workers
@@ -184,7 +184,7 @@ func (r *WorkerRepository) DeleteWorker(ctx context.Context, id uuid.UUID) error
 }
 
 func (r *WorkerRepository) UpdateWorker(ctx context.Context, w *worker.Worker) (*worker.Worker, error) {
-	const op = "internal.repository.postgres.worker_repo.UpdateWorker"
+	const op = "internal.postgres.worker_repo.UpdateWorker"
 
 	const q = `
 	UPDATE workers

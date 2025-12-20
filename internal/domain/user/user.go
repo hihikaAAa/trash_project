@@ -41,6 +41,16 @@ func NewUser(name,surname,lastName string, addressID uuid.UUID) (*User, error){
 	return &u, nil
 }
 
+func (u *User) UpdateUser(person person.Person, addressID uuid.UUID) error{
+	u.Person = &person
+	u.AddressID = addressID
+
+	if err := u.Validate(); err != nil{
+		return fmt.Errorf("validate: %w", err)
+	}
+	return nil
+}
+
 func (u *User) Validate() error{
 	return validate.Struct(u)
 }

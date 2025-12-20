@@ -21,7 +21,7 @@ func NewAddressRepository(db *sql.DB) *AddressRepository {
 }
 
 func (r *AddressRepository) AddAddress(ctx context.Context, address *address.Address) error {
-	const op = "internal.repository.postgres.address_repo.AddAddress"
+	const op = "internal.postgres.address_repo.AddAddress"
 
 	const q = `
 	INSERT INTO addresses(address_id, street, house_number, entrance, floor_number, apartment_number)
@@ -42,7 +42,7 @@ func (r *AddressRepository) AddAddress(ctx context.Context, address *address.Add
 }
 
 func (r *AddressRepository) CheckNotExists(ctx context.Context, street, houseNumber, entrance string, floorNumber, apartmentNumber int) error {
-	const op = "internal.repository.postgres.address_repo.CheckNotExists"
+	const op = "internal.postgres.address_repo.CheckNotExists"
 
 	const q = `
 	SELECT 1 FROM addresses 
@@ -61,7 +61,7 @@ func (r *AddressRepository) CheckNotExists(ctx context.Context, street, houseNum
 }
 
 func (r *AddressRepository) GetByID(ctx context.Context, id uuid.UUID) (*address.Address, error) {
-	const op = "internal.repository.postgres.address_repo.GetByID"
+	const op = "internal.postgres.address_repo.GetByID"
 
 	const q = `
 	SELECT address_id, street, house_number, entrance, floor_number, apartment_number
@@ -82,7 +82,7 @@ func (r *AddressRepository) GetByID(ctx context.Context, id uuid.UUID) (*address
 }
 
 func (r *AddressRepository) List(ctx context.Context) ([]*address.Address, error) {
-	const op = "internal.repository.postgres.address_repo.List"
+	const op = "internal.postgres.address_repo.List"
 
 	const q = `
 	SELECT address_id, street, house_number, entrance, floor_number, apartment_number
@@ -112,7 +112,7 @@ func (r *AddressRepository) List(ctx context.Context) ([]*address.Address, error
 }
 
 func (r *AddressRepository) DeleteAddress(ctx context.Context, id uuid.UUID) error {
-	const op = "internal.repository.postgres.address_repo.DeleteAddress"
+	const op = "internal.postgres.address_repo.DeleteAddress"
 
 	const q = `
 	DELETE FROM addresses
@@ -136,7 +136,7 @@ func (r *AddressRepository) DeleteAddress(ctx context.Context, id uuid.UUID) err
 }
 
 func (r *AddressRepository) UpdateAddress(ctx context.Context, addr *address.Address) (*address.Address, error) {
-	const op = "internal.repository.postgres.address_repo.UpdateAddress"
+	const op = "internal.postgres.address_repo.UpdateAddress"
 
 	const q = `
 	UPDATE addresses

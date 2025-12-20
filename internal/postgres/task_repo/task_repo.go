@@ -20,7 +20,7 @@ func NewTaskRepository(db *sql.DB) *TaskRepository {
 }
 
 func (r *TaskRepository) AddTask(ctx context.Context, task *task.Task) error {
-	const op = "internal.repository.postgres.task_repo.AddTask"
+	const op = "internal.postgres.task_repo.AddTask"
 
 	const q = `
 	INSERT INTO tasks(task_id, client_id, address_id, worker_id, status)
@@ -35,7 +35,7 @@ func (r *TaskRepository) AddTask(ctx context.Context, task *task.Task) error {
 }
 
 func (r *TaskRepository) GetByID(ctx context.Context, id uuid.UUID) (*task.Task, error) {
-	const op = "internal.repository.postgres.task_repo.GetByID"
+	const op = "internal.postgres.task_repo.GetByID"
 
 	const q = `
 	SELECT task_id, client_id, address_id, worker_id, status
@@ -56,7 +56,7 @@ func (r *TaskRepository) GetByID(ctx context.Context, id uuid.UUID) (*task.Task,
 }
 
 func (r *TaskRepository) ListByClientID(ctx context.Context, clientID uuid.UUID) ([]*task.Task, error) {
-	const op = "internal.repository.postgres.task_repo.ListByClientID"
+	const op = "internal.postgres.task_repo.ListByClientID"
 
 	const q = `
 	SELECT task_id, client_id, address_id, worker_id, status
@@ -88,7 +88,7 @@ func (r *TaskRepository) ListByClientID(ctx context.Context, clientID uuid.UUID)
 }
 
 func (r *TaskRepository) ListActiveByWorkerID(ctx context.Context, workerID uuid.UUID) ([]*task.Task, error) {
-	const op = "internal.repository.postgres.task_repo.ListActiveByWorkerID"
+	const op = "internal.postgres.task_repo.ListActiveByWorkerID"
 
 	const q = `
 	SELECT task_id, client_id, address_id, worker_id, status
@@ -120,7 +120,7 @@ func (r *TaskRepository) ListActiveByWorkerID(ctx context.Context, workerID uuid
 }
 
 func (r *TaskRepository) ListDoneByWorkerID(ctx context.Context, workerID uuid.UUID) ([]*task.Task, error) {
-	const op = "internal.repository.postgres.task_repo.ListDoneByWorkerID"
+	const op = "internal.postgres.task_repo.ListDoneByWorkerID"
 
 	const q = `
 	SELECT task_id, client_id, address_id, worker_id, status
@@ -152,7 +152,7 @@ func (r *TaskRepository) ListDoneByWorkerID(ctx context.Context, workerID uuid.U
 }
 
 func (r *TaskRepository) DeleteTask(ctx context.Context, id uuid.UUID) error {
-	const op = "internal.repository.postgres.task_repo.DeleteTask"
+	const op = "internal.postgres.task_repo.DeleteTask"
 
 	const q = `
 	DELETE FROM tasks
@@ -176,7 +176,7 @@ func (r *TaskRepository) DeleteTask(ctx context.Context, id uuid.UUID) error {
 }
 
 func (r *TaskRepository) UpdateStatus(ctx context.Context, id uuid.UUID, status task.Status) (*task.Task, error) {
-	const op = "internal.repository.postgres.task_repo.UpdateStatus"
+	const op = "internal.postgres.task_repo.UpdateStatus"
 
 	const q = `
 	UPDATE tasks
@@ -199,7 +199,7 @@ func (r *TaskRepository) UpdateStatus(ctx context.Context, id uuid.UUID, status 
 }
 
 func (r *TaskRepository) HasOpenTaskForClient(ctx context.Context, clientID uuid.UUID) (bool, error) {
-	const op = "internal.repository.postgres.task_repo.HasOpenTaskForClient"
+	const op = "internal.postgres.task_repo.HasOpenTaskForClient"
 
 	const q = `
 	SELECT 1 
@@ -220,7 +220,7 @@ func (r *TaskRepository) HasOpenTaskForClient(ctx context.Context, clientID uuid
 }
 
 func (r *TaskRepository) AssignWorker(ctx context.Context, taskID uuid.UUID, workerID uuid.UUID) (*task.Task, error) {
-	const op = "internal.repository.postgres.task_repo.AssignWorker"
+	const op = "internal.postgres.task_repo.AssignWorker"
 
 	const q = `
 	UPDATE tasks
@@ -243,7 +243,7 @@ func (r *TaskRepository) AssignWorker(ctx context.Context, taskID uuid.UUID, wor
 }
 
 func (r *TaskRepository) ListOpenTasks(ctx context.Context) ([]*task.Task, error) {
-	const op = "internal.repository.postgres.task_repo.ListOpenTasks"
+	const op = "internal.postgres.task_repo.ListOpenTasks"
 
 	const q = `
 	SELECT task_id, client_id, address_id, worker_id, status

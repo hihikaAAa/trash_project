@@ -15,8 +15,8 @@ type Address struct {
 	Street          string    `json:"street" validate:"required,min=1,max=20"`
 	HouseNumber     string    `json:"house_number" validate:"required,min=1,max=20"`
 	Entrance        string    `json:"entrance,omitempty"`
-	FloorNumber     int       `json:"floor_number,omitempty" validate:"required"`
-	ApartmentNumber int       `json:"apartment_number,omitempty" validate:"required"`
+	FloorNumber     int       `json:"floor_number,omitempty" validate:"gte=0"`
+	ApartmentNumber int       `json:"apartment_number,omitempty" validate:"gte=0"`
 }
 
 func NewAddress(street, houseNumber, entrance string, floorNumber, apartmentNumber int) (*Address, error) {
@@ -36,6 +36,19 @@ func NewAddress(street, houseNumber, entrance string, floorNumber, apartmentNumb
 	}
 
 	return &a, nil
+}
+
+func (a *Address) UpdateAddress(street, houseNumber, entrance string, floorNumber, apartmentNumber int) error{
+	a.Street = street
+	a.HouseNumber = houseNumber
+	a.Entrance = entrance
+	a.FloorNumber = floorNumber
+	a.ApartmentNumber = apartmentNumber
+
+	if err := a.Validate(); err != nil{
+		return fmt.Errorf("validate: %w", err)
+	}
+	return nil
 }
 
 func (a *Address) Validate() error {

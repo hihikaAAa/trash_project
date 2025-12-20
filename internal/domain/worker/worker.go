@@ -21,25 +21,34 @@ type Worker struct {
 	// TODO : Добавить район для работы
 }
 
-func NewWorker(name, surname, lastName string) (*Worker, error){
+func NewWorker(name, surname, lastName string) (*Worker, error) {
 	id := uuid.New()
 
-	p, err := person.NewPerson(name,surname,lastName)
-	if err != nil{
+	p, err := person.NewPerson(name, surname, lastName)
+	if err != nil {
 		return nil, err
 	}
 
 	w := Worker{
-		ID: id,
+		ID:     id,
 		Person: p,
 	}
 
-	if err := w.Validate(); err != nil{
+	if err := w.Validate(); err != nil {
 		return nil, fmt.Errorf("validate: %w", err)
 	}
 	return &w, nil
 }
 
-func (w *Worker) Validate() error{
+func (w *Worker) UpdateWorker(person person.Person) error {
+	w.Person = &person
+
+	if err := w.Validate(); err != nil {
+		return fmt.Errorf("validate: %w", err)
+	}
+	return nil
+}
+
+func (w *Worker) Validate() error {
 	return validate.Struct(w)
 }
