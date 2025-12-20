@@ -10,33 +10,33 @@ import (
 	repoerrors "github.com/hihikaAAa/TrashProject/internal/repository/postgres/repo_errors"
 )
 
-type UserRepository struct{
+type UserRepository struct {
 	db *sql.DB
 }
 
-func NewUserRepository (db *sql.DB) *UserRepository{
+func NewUserRepository(db *sql.DB) *UserRepository {
 	return &UserRepository{db: db}
 }
 
-func (r *UserRepository) AddUser(ctx context.Context, user *user.User) error{
+func (r *UserRepository) AddUser(ctx context.Context, user *user.User) error {
 	const op = "internal.repository.postgres.user_repo.AddUser"
 
 	const q = `
 	INSERT INTO users(user_id, first_name, surname, last_name, address_id)
 	VALUES ($1, $2, $3, $4, $5)
 	`
-	err := r.CheckNotExists(ctx,user.FirstName, user.Surname, user.LastName)
-	if err != nil{
+	err := r.CheckNotExists(ctx, user.FirstName, user.Surname, user.LastName)
+	if err != nil {
 		return err
 	}
-	_, err = r.db.ExecContext(ctx,q,user.ID, user.FirstName, user.Surname, user.LastName, user.AddressID)
-	if err != nil{
+	_, err = r.db.ExecContext(ctx, q, user.ID, user.FirstName, user.Surname, user.LastName, user.AddressID)
+	if err != nil {
 		return fmt.Errorf("%s, ExecContext: %w", op, err)
 	}
 	return nil
 }
 
-func (r *UserRepository) CheckNotExists(ctx context.Context, name, surname, last_name string)  error{
+func (r *UserRepository) CheckNotExists(ctx context.Context, name, surname, last_name string) error {
 	const op = "internal.repository.postgres.user_repo.CheckNotExists"
 
 	const q = `
@@ -45,17 +45,17 @@ func (r *UserRepository) CheckNotExists(ctx context.Context, name, surname, last
 	WHERE first_name = $1 AND surname = $2 AND last_name = $3
 	`
 	var dummy int
-	err := r.db.QueryRowContext(ctx,q,name,surname,last_name).Scan(&dummy)
-	if err == sql.ErrNoRows{
+	err := r.db.QueryRowContext(ctx, q, name, surname, last_name).Scan(&dummy)
+	if err == sql.ErrNoRows {
 		return nil
 	}
-	if err != nil{
+	if err != nil {
 		return fmt.Errorf("%s, QueryRowContext: %w", op, err)
 	}
 	return repoerrors.ErrUserExists
 }
 
-func (r *UserRepository) GetByID(ctx context.Context, id uuid.UUID)(*user.User, error){
+func (r *UserRepository) GetByID(ctx context.Context, id uuid.UUID) (*user.User, error) {
 	const op = "internal.repository.postgres.user_repo.GetByID"
 
 	const q = `
@@ -65,17 +65,17 @@ func (r *UserRepository) GetByID(ctx context.Context, id uuid.UUID)(*user.User, 
 	`
 
 	u := &user.User{}
-	err := r.db.QueryRowContext(ctx,q,id).Scan(&u.ID, &u.FirstName, &u.Surname, &u.LastName, &u.AddressID)
-	if err == sql.ErrNoRows{
+	err := r.db.QueryRowContext(ctx, q, id).Scan(&u.ID, &u.FirstName, &u.Surname, &u.LastName, &u.AddressID)
+	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("%s: %w", op, repoerrors.ErrUserNotFound)
 	}
-	if err != nil{
+	if err != nil {
 		return nil, fmt.Errorf("%s, QueryRowContext: %w", op, err)
 	}
 	return u, nil
 }
 
-func (r *UserRepository) FindByFullName(ctx context.Context, name,surname,lastName string)(*user.User, error){
+func (r *UserRepository) FindByFullName(ctx context.Context, name, surname, lastName string) (*user.User, error) {
 	const op = "internal.repository.postgres.user_repo.FindByFullName"
 
 	const q = `
@@ -85,17 +85,17 @@ func (r *UserRepository) FindByFullName(ctx context.Context, name,surname,lastNa
 	`
 
 	u := &user.User{}
-	err := r.db.QueryRowContext(ctx,q,name,surname,lastName).Scan(&u.ID, &u.FirstName, &u.Surname, &u.LastName, &u.AddressID)
-	if err == sql.ErrNoRows{
+	err := r.db.QueryRowContext(ctx, q, name, surname, lastName).Scan(&u.ID, &u.FirstName, &u.Surname, &u.LastName, &u.AddressID)
+	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("%s: %w", op, repoerrors.ErrUserNotFound)
 	}
-	if err != nil{
+	if err != nil {
 		return nil, fmt.Errorf("%s, QueryRowContext: %w", op, err)
 	}
 	return u, nil
 }
 
-func (r *UserRepository) List(ctx context.Context)([]*user.User, error){
+func (r *UserRepository) List(ctx context.Context) ([]*user.User, error) {
 	const op = "internal.repository.postgres.user_repo.List"
 
 	const q = `
@@ -103,23 +103,23 @@ func (r *UserRepository) List(ctx context.Context)([]*user.User, error){
 	FROM users
 	`
 
-	rows, err := r.db.QueryContext(ctx,q)
-	if err != nil{
+	rows, err := r.db.QueryContext(ctx, q)
+	if err != nil {
 		return nil, fmt.Errorf("%s, QueryContext: %w", op, err)
 	}
 	defer rows.Close()
 
 	users := make([]*user.User, 0)
 
-	for rows.Next(){
+	for rows.Next() {
 		u := &user.User{}
 		err := rows.Scan(&u.ID, &u.FirstName, &u.Surname, &u.LastName, &u.AddressID)
-		if err != nil{
+		if err != nil {
 			return nil, fmt.Errorf("%s, Scan: %w", op, err)
 		}
 		users = append(users, u)
 	}
-	if err := rows.Err(); err != nil{
+	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("%s, RowsErr: %w", op, err)
 	}
 
@@ -150,8 +150,7 @@ func (r *UserRepository) DeleteUser(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
-
-func (r *UserRepository) UpdateUser(ctx context.Context, u *user.User) (*user.User, error){
+func (r *UserRepository) UpdateUser(ctx context.Context, u *user.User) (*user.User, error) {
 	const op = "internal.repository.postgres.user_repo.UpdateUser"
 
 	const q = `
@@ -162,13 +161,13 @@ func (r *UserRepository) UpdateUser(ctx context.Context, u *user.User) (*user.Us
 	`
 
 	user := &user.User{}
-	err := r.db.QueryRowContext(ctx,q,u.ID, u.FirstName,u.Surname, u.LastName, u.AddressID).Scan(
+	err := r.db.QueryRowContext(ctx, q, u.ID, u.FirstName, u.Surname, u.LastName, u.AddressID).Scan(
 		&user.ID, &user.FirstName, &user.Surname, &user.LastName, &user.AddressID,
 	)
-	if err == sql.ErrNoRows{
+	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("%s, %w", op, repoerrors.ErrUserNotFound)
 	}
-	if err != nil{
+	if err != nil {
 		return nil, fmt.Errorf("%s, QueryRowContext: %w", op, err)
 	}
 	return user, nil

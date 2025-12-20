@@ -10,15 +10,15 @@ import (
 	repoerrors "github.com/hihikaAAa/TrashProject/internal/repository/postgres/repo_errors"
 )
 
-type WorkerRepository struct{
+type WorkerRepository struct {
 	db *sql.DB
 }
 
-func NewWorkerRepository(db *sql.DB) *WorkerRepository{
+func NewWorkerRepository(db *sql.DB) *WorkerRepository {
 	return &WorkerRepository{db: db}
 }
 
-func (r *WorkerRepository) AddWorker(ctx context.Context, worker *worker.Worker)(error){
+func (r *WorkerRepository) AddWorker(ctx context.Context, worker *worker.Worker) error {
 	const op = "internal.repository.postgres.worker_repo.AddWorker"
 
 	const q = `
@@ -26,36 +26,36 @@ func (r *WorkerRepository) AddWorker(ctx context.Context, worker *worker.Worker)
 	VALUES ($1, $2, $3, $4, $5) 
 	`
 
-	err := r.CheckNotExists(ctx, worker.FirstName,worker.Surname,worker.LastName)
-	if err != nil{
+	err := r.CheckNotExists(ctx, worker.FirstName, worker.Surname, worker.LastName)
+	if err != nil {
 		return err
 	}
 
-	_,err = r.db.ExecContext(ctx,q,worker.ID, worker.FirstName, worker.Surname, worker.LastName, false)
-	if err != nil{
+	_, err = r.db.ExecContext(ctx, q, worker.ID, worker.FirstName, worker.Surname, worker.LastName, false)
+	if err != nil {
 		return fmt.Errorf("%s, ExecContext: %w", op, err)
 	}
 	return nil
 }
 
-func (r *WorkerRepository) CheckNotExists(ctx context.Context, name, surname, last_name string)  error{
+func (r *WorkerRepository) CheckNotExists(ctx context.Context, name, surname, last_name string) error {
 	const op = "internal.repository.postgres.worker_repo.CheckNotExists"
 
 	const q = `
 	SELECT 1 FROM workers WHERE first_name = $1 AND surname = $2 AND last_name = $3
 	`
 	var dummy int
-	err := r.db.QueryRowContext(ctx,q,name,surname,last_name).Scan(&dummy)
-	if err == sql.ErrNoRows{
+	err := r.db.QueryRowContext(ctx, q, name, surname, last_name).Scan(&dummy)
+	if err == sql.ErrNoRows {
 		return nil
 	}
-	if err != nil{
+	if err != nil {
 		return fmt.Errorf("%s, QueryRowContext: %w", op, err)
 	}
 	return repoerrors.ErrWorkerExists
 }
 
-func (r *WorkerRepository) SetIsActive(ctx context.Context, id uuid.UUID, active bool)(*worker.Worker, error){
+func (r *WorkerRepository) SetIsActive(ctx context.Context, id uuid.UUID, active bool) (*worker.Worker, error) {
 	const op = "internal.repository.postgres.worker_repo.SetIsActive"
 
 	const q = `
@@ -67,16 +67,16 @@ func (r *WorkerRepository) SetIsActive(ctx context.Context, id uuid.UUID, active
 
 	w := &worker.Worker{}
 	err := r.db.QueryRowContext(ctx, q, id, active).Scan(&w.ID, &w.FirstName, &w.Surname, &w.LastName, &w.IsActive)
-	if err == sql.ErrNoRows{
+	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("%s, %w", op, repoerrors.ErrWorkerNotFound)
 	}
-	if err != nil{
+	if err != nil {
 		return nil, fmt.Errorf("%s, QueryRowContext: %w", op, err)
 	}
 	return w, nil
 }
 
-func (r *WorkerRepository) FindActive(ctx context.Context)([]*worker.Worker,error){
+func (r *WorkerRepository) FindActive(ctx context.Context) ([]*worker.Worker, error) {
 	const op = "internal.repository.postgres.worker_repo.FindActive"
 
 	const q = `
@@ -85,14 +85,14 @@ func (r *WorkerRepository) FindActive(ctx context.Context)([]*worker.Worker,erro
 	WHERE is_active = $1
 	`
 
-	rows, err := r.db.QueryContext(ctx,q,true)
-	if err != nil{
+	rows, err := r.db.QueryContext(ctx, q, true)
+	if err != nil {
 		return nil, fmt.Errorf("%s, QueryContext: %w", op, err)
 	}
 	defer rows.Close()
 
-	activeWorkers := make([]*worker.Worker,0)
-	for rows.Next(){
+	activeWorkers := make([]*worker.Worker, 0)
+	for rows.Next() {
 		w := &worker.Worker{}
 		err := rows.Scan(&w.ID, &w.FirstName, &w.Surname, &w.IsActive)
 		if err != nil {
@@ -100,13 +100,13 @@ func (r *WorkerRepository) FindActive(ctx context.Context)([]*worker.Worker,erro
 		}
 		activeWorkers = append(activeWorkers, w)
 	}
-	if err := rows.Err(); err != nil{
+	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("%s, RowsErr: %w", op, err)
 	}
 	return activeWorkers, nil
 }
 
-func (r *WorkerRepository) GetByID(ctx context.Context, id uuid.UUID)(*worker.Worker, error){
+func (r *WorkerRepository) GetByID(ctx context.Context, id uuid.UUID) (*worker.Worker, error) {
 	const op = "internal.repository.postgres.worker_repo.GetByID"
 
 	const q = `
@@ -116,17 +116,17 @@ func (r *WorkerRepository) GetByID(ctx context.Context, id uuid.UUID)(*worker.Wo
 	`
 
 	w := &worker.Worker{}
-	err := r.db.QueryRowContext(ctx,q,id).Scan(&w.ID, &w.FirstName, &w.Surname, &w.LastName, &w.IsActive)
-	if err == sql.ErrNoRows{
+	err := r.db.QueryRowContext(ctx, q, id).Scan(&w.ID, &w.FirstName, &w.Surname, &w.LastName, &w.IsActive)
+	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("%s: %w", op, repoerrors.ErrWorkerNotFound)
 	}
-	if err != nil{
+	if err != nil {
 		return nil, fmt.Errorf("%s, QueryRowContext: %w", op, err)
 	}
 	return w, nil
 }
 
-func (r *WorkerRepository) List(ctx context.Context)([]*worker.Worker, error){
+func (r *WorkerRepository) List(ctx context.Context) ([]*worker.Worker, error) {
 	const op = "internal.repository.postgres.worker_repo.List"
 
 	const q = `
@@ -134,23 +134,23 @@ func (r *WorkerRepository) List(ctx context.Context)([]*worker.Worker, error){
 	FROM workers
 	`
 
-	rows, err := r.db.QueryContext(ctx,q)
-	if err != nil{
+	rows, err := r.db.QueryContext(ctx, q)
+	if err != nil {
 		return nil, fmt.Errorf("%s, QueryContext: %w", op, err)
 	}
 	defer rows.Close()
 
 	workers := make([]*worker.Worker, 0)
 
-	for rows.Next(){
+	for rows.Next() {
 		w := &worker.Worker{}
 		err := rows.Scan(&w.ID, &w.FirstName, &w.Surname, &w.LastName, &w.IsActive)
-		if err != nil{
+		if err != nil {
 			return nil, fmt.Errorf("%s, Scan: %w", op, err)
 		}
 		workers = append(workers, w)
 	}
-	if err := rows.Err(); err != nil{
+	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("%s, RowsErr: %w", op, err)
 	}
 
@@ -181,8 +181,7 @@ func (r *WorkerRepository) DeleteWorker(ctx context.Context, id uuid.UUID) error
 	return nil
 }
 
-
-func (r *WorkerRepository) UpdateWorker(ctx context.Context, w *worker.Worker) (*worker.Worker, error){
+func (r *WorkerRepository) UpdateWorker(ctx context.Context, w *worker.Worker) (*worker.Worker, error) {
 	const op = "internal.repository.postgres.worker_repo.UpdateWorker"
 
 	const q = `
@@ -193,14 +192,14 @@ func (r *WorkerRepository) UpdateWorker(ctx context.Context, w *worker.Worker) (
 	`
 
 	worker := &worker.Worker{}
-	err := r.db.QueryRowContext(ctx,q,w.ID, w.FirstName,w.Surname, w.LastName, w.IsActive).Scan(
+	err := r.db.QueryRowContext(ctx, q, w.ID, w.FirstName, w.Surname, w.LastName, w.IsActive).Scan(
 		&worker.ID, &worker.FirstName, &worker.Surname, &worker.LastName, &worker.IsActive,
 	)
-	if err == sql.ErrNoRows{
+	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("%s, %w", op, repoerrors.ErrWorkerNotFound)
 	}
-	if err != nil{
+	if err != nil {
 		return nil, fmt.Errorf("%s, QueryRowContext: %w", op, err)
 	}
-	return  worker, nil
+	return worker, nil
 }

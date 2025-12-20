@@ -3,44 +3,44 @@ package addressrepo
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"errors"
+	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/hihikaAAa/TrashProject/internal/domain/address"
 	repoerrors "github.com/hihikaAAa/TrashProject/internal/repository/postgres/repo_errors"
 )
 
-type AddressRepository struct{
+type AddressRepository struct {
 	db *sql.DB
 }
 
-func NewAddressRepository(db *sql.DB)*AddressRepository{
-	return &AddressRepository{db:db}
+func NewAddressRepository(db *sql.DB) *AddressRepository {
+	return &AddressRepository{db: db}
 }
 
-func (r *AddressRepository) AddAddress(ctx context.Context, address *address.Address) error{
+func (r *AddressRepository) AddAddress(ctx context.Context, address *address.Address) error {
 	const op = "internal.repository.postgres.address_repo.AddAddress"
 
 	const q = `
 	INSERT INTO addresses(address_id, street, house_number, entrance, floor_number, apartment_number)
 	VALUES ($1, $2, $3, $4, $5, $6)
 	`
-	err := r.CheckNotExists(ctx, address.Street,address.HouseNumber, address.Entrance, address.FloorNumber, address.ApartmentNumber)
-	if errors.Is(err,repoerrors.ErrAddressExists){
+	err := r.CheckNotExists(ctx, address.Street, address.HouseNumber, address.Entrance, address.FloorNumber, address.ApartmentNumber)
+	if errors.Is(err, repoerrors.ErrAddressExists) {
 		return nil
 	}
-	if err != nil{
+	if err != nil {
 		return err
 	}
-	_, err = r.db.ExecContext(ctx,q,address.ID, address.Street, address.HouseNumber, address.Entrance, address.FloorNumber, address.ApartmentNumber)
-	if err != nil{
+	_, err = r.db.ExecContext(ctx, q, address.ID, address.Street, address.HouseNumber, address.Entrance, address.FloorNumber, address.ApartmentNumber)
+	if err != nil {
 		return fmt.Errorf("%s, ExecContext: %w", op, err)
 	}
 	return nil
 }
 
-func (r *AddressRepository) CheckNotExists(ctx context.Context, street, houseNumber, entrance string , floorNumber, apartmentNumber int)  error{
+func (r *AddressRepository) CheckNotExists(ctx context.Context, street, houseNumber, entrance string, floorNumber, apartmentNumber int) error {
 	const op = "internal.repository.postgres.address_repo.CheckNotExists"
 
 	const q = `
@@ -49,17 +49,17 @@ func (r *AddressRepository) CheckNotExists(ctx context.Context, street, houseNum
 	`
 
 	var dummy int
-	err := r.db.QueryRowContext(ctx,q,street, houseNumber, entrance,floorNumber, apartmentNumber).Scan(&dummy)
-	if err == sql.ErrNoRows{
+	err := r.db.QueryRowContext(ctx, q, street, houseNumber, entrance, floorNumber, apartmentNumber).Scan(&dummy)
+	if err == sql.ErrNoRows {
 		return nil
 	}
-	if err != nil{
+	if err != nil {
 		return fmt.Errorf("%s, QueryRowContext: %w", op, err)
 	}
 	return repoerrors.ErrAddressExists
 }
 
-func (r *AddressRepository) GetByID(ctx context.Context, id uuid.UUID) (*address.Address, error){
+func (r *AddressRepository) GetByID(ctx context.Context, id uuid.UUID) (*address.Address, error) {
 	const op = "internal.repository.postgres.address_repo.GetByID"
 
 	const q = `
@@ -69,18 +69,18 @@ func (r *AddressRepository) GetByID(ctx context.Context, id uuid.UUID) (*address
 	`
 	a := &address.Address{}
 
-	err := r.db.QueryRowContext(ctx,q,id).Scan(&a.ID, &a.Street, &a.HouseNumber, &a.Entrance, &a.FloorNumber, &a.ApartmentNumber)
-	if err == sql.ErrNoRows{
+	err := r.db.QueryRowContext(ctx, q, id).Scan(&a.ID, &a.Street, &a.HouseNumber, &a.Entrance, &a.FloorNumber, &a.ApartmentNumber)
+	if err == sql.ErrNoRows {
 		return nil, repoerrors.ErrAddressNotFound
 	}
-	if err != nil{
-		return nil , fmt.Errorf("%s, QueryRowContext: %w", op, err)
+	if err != nil {
+		return nil, fmt.Errorf("%s, QueryRowContext: %w", op, err)
 	}
 
 	return a, nil
 }
 
-func (r *AddressRepository) List(ctx context.Context)([]*address.Address, error){
+func (r *AddressRepository) List(ctx context.Context) ([]*address.Address, error) {
 	const op = "internal.repository.postgres.address_repo.List"
 
 	const q = `
@@ -88,29 +88,29 @@ func (r *AddressRepository) List(ctx context.Context)([]*address.Address, error)
 	FROM addresses
 	`
 
-	rows, err := r.db.QueryContext(ctx,q)
-	if err != nil{
+	rows, err := r.db.QueryContext(ctx, q)
+	if err != nil {
 		return nil, fmt.Errorf("%s, QueryContext: %w", op, err)
 	}
 	defer rows.Close()
 
-	addresses := make([]*address.Address,0)
-	for rows.Next(){
+	addresses := make([]*address.Address, 0)
+	for rows.Next() {
 		a := &address.Address{}
 		err := rows.Scan(&a.ID, &a.Street, &a.HouseNumber, &a.Entrance, &a.FloorNumber, &a.ApartmentNumber)
-		if err != nil{
+		if err != nil {
 			return nil, fmt.Errorf("%s, Scan: %w", op, err)
 		}
 		addresses = append(addresses, a)
 	}
-	if err := rows.Err(); err != nil{
+	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("%s, RowsErr: %w", op, err)
 	}
 
 	return addresses, nil
 }
 
-func (r *AddressRepository) DeleteAddress(ctx context.Context, id uuid.UUID) error{
+func (r *AddressRepository) DeleteAddress(ctx context.Context, id uuid.UUID) error {
 	const op = "internal.repository.postgres.address_repo.DeleteAddress"
 
 	const q = `
@@ -132,9 +132,9 @@ func (r *AddressRepository) DeleteAddress(ctx context.Context, id uuid.UUID) err
 	}
 
 	return nil
-}	
+}
 
-func (r *AddressRepository) UpdateAddress(ctx context.Context, addr *address.Address) (*address.Address, error){
+func (r *AddressRepository) UpdateAddress(ctx context.Context, addr *address.Address) (*address.Address, error) {
 	const op = "internal.repository.postgres.address_repo.UpdateAddress"
 
 	const q = `
@@ -146,14 +146,14 @@ func (r *AddressRepository) UpdateAddress(ctx context.Context, addr *address.Add
 
 	a := &address.Address{}
 
-	err := r.db.QueryRowContext(ctx,q,addr.ID, addr.Street,addr.HouseNumber, addr.Entrance, addr.FloorNumber, addr.ApartmentNumber).Scan(
+	err := r.db.QueryRowContext(ctx, q, addr.ID, addr.Street, addr.HouseNumber, addr.Entrance, addr.FloorNumber, addr.ApartmentNumber).Scan(
 		&a.ID, &a.Street, &a.HouseNumber, &a.Entrance, &a.FloorNumber, &a.ApartmentNumber,
 	)
-	if err == sql.ErrNoRows{
+	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("%s, %w", op, repoerrors.ErrAddressNotFound)
 	}
-	if err != nil{
+	if err != nil {
 		return nil, fmt.Errorf("%s, QueryRowContext: %w", op, err)
 	}
-	return  a, nil
+	return a, nil
 }

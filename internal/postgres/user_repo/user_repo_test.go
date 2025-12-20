@@ -52,8 +52,8 @@ func TestUserRepository_AddUser_Success(t *testing.T) {
 			WHERE first_name = $1 AND surname = $2 AND last_name = $3
 		`),
 	).
-	WithArgs(u.FirstName, u.Surname, u.LastName).
-	WillReturnError(sql.ErrNoRows)
+		WithArgs(u.FirstName, u.Surname, u.LastName).
+		WillReturnError(sql.ErrNoRows)
 
 	mock.ExpectExec(
 		regexp.QuoteMeta(`
@@ -61,8 +61,8 @@ func TestUserRepository_AddUser_Success(t *testing.T) {
 			VALUES ($1, $2, $3, $4, $5)
 		`),
 	).
-	WithArgs(u.ID, u.FirstName, u.Surname, u.LastName, u.AddressID).
-	WillReturnResult(sqlmock.NewResult(0, 1))
+		WithArgs(u.ID, u.FirstName, u.Surname, u.LastName, u.AddressID).
+		WillReturnResult(sqlmock.NewResult(0, 1))
 
 	err := repo.AddUser(ctx, u)
 	if err != nil {
@@ -96,8 +96,8 @@ func TestUserRepository_AddUser_UserAlreadyExists(t *testing.T) {
 			WHERE first_name = $1 AND surname = $2 AND last_name = $3
 		`),
 	).
-	WithArgs(u.FirstName, u.Surname, u.LastName).
-	WillReturnRows(rows)
+		WithArgs(u.FirstName, u.Surname, u.LastName).
+		WillReturnRows(rows)
 
 	err := repo.AddUser(ctx, u)
 	if !errors.Is(err, repoerrors.ErrUserExists) {
@@ -122,8 +122,8 @@ func TestUserRepository_CheckNotExists_NoRows(t *testing.T) {
 			WHERE first_name = $1 AND surname = $2 AND last_name = $3
 		`),
 	).
-	WithArgs("Ivan", "Ivanov", "Ivanovich").
-	WillReturnError(sql.ErrNoRows)
+		WithArgs("Ivan", "Ivanov", "Ivanovich").
+		WillReturnError(sql.ErrNoRows)
 
 	err := repo.CheckNotExists(ctx, "Ivan", "Ivanov", "Ivanovich")
 	if err != nil {

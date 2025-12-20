@@ -3,10 +3,10 @@ package address
 import "github.com/google/uuid"
 
 type Address struct {
-	ID uuid.UUID
-	Street            string
-	HouseNumber      string
-	Entrance         string
-	FloorNumber      int
+	ID              uuid.UUID
+	Street          string
+	HouseNumber     string
+	Entrance        string
+	FloorNumber     int
 	ApartmentNumber int
 }
