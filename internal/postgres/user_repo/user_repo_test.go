@@ -10,6 +10,7 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/google/uuid"
 
+	"github.com/hihikaAAa/TrashProject/internal/domain/person"
 	"github.com/hihikaAAa/TrashProject/internal/domain/user"
 	postgreserrors "github.com/hihikaAAa/TrashProject/internal/postgres/postgres_errors"
 )
@@ -36,7 +37,8 @@ func TestUserRepository_AddUser_Success(t *testing.T) {
 	defer cleanup()
 
 	ctx := context.Background()
-	u, _ := user.NewUser("Ivan", "Ivanov", "Ivanovich", uuid.New())
+	p, _ := person.NewPerson("Ivan", "Ivanov", "Ivanovich")
+	u, _ := user.NewUser(p, uuid.New())
 
 	mock.ExpectQuery(
 		regexp.QuoteMeta(`
@@ -72,8 +74,8 @@ func TestUserRepository_AddUser_UserAlreadyExists(t *testing.T) {
 	defer cleanup()
 
 	ctx := context.Background()
-
-	u, _ := user.NewUser("Ivan", "Ivanov", "Ivanovich", uuid.New())
+	p, _ := person.NewPerson("Ivan", "Ivanov", "Ivanovich")
+	u, _ := user.NewUser(p, uuid.New())
 
 	rows := sqlmock.NewRows([]string{"dummy"}).AddRow(1)
 	mock.ExpectQuery(
@@ -382,8 +384,8 @@ func TestUserRepository_UpdateUser_Success(t *testing.T) {
 	defer cleanup()
 
 	ctx := context.Background()
-
-	u, _ := user.NewUser("Ivan", "Ivanov", "Ivanovich", uuid.New())
+	p, _ := person.NewPerson("Ivan", "Ivanov", "Ivanovich")
+	u, _ := user.NewUser(p, uuid.New())
 
 	rows := sqlmock.NewRows([]string{"user_id", "first_name", "surname", "last_name", "address_id"}).
 		AddRow(u.ID, u.Person.FirstName, u.Person.Surname, u.Person.LastName, u.AddressID)
@@ -418,8 +420,8 @@ func TestUserRepository_UpdateUser_NotFound(t *testing.T) {
 	defer cleanup()
 
 	ctx := context.Background()
-
-	u, _ := user.NewUser("Ivan", "Ivanov", "Ivanovich", uuid.New())
+	p, _ := person.NewPerson("Ivan", "Ivanov", "Ivanovich")
+	u, _ := user.NewUser(p, uuid.New())
 
 	mock.ExpectQuery(
 		regexp.QuoteMeta(`

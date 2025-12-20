@@ -15,23 +15,18 @@ var validate = validator.New()
 type User struct {
 	ID        uuid.UUID     `json:"id"`
 	Person    *person.Person `json:"person" validate:"required"`
-	AddressID uuid.UUID     `json:"address_id"`
+	AddressID uuid.UUID     `json:"address_id" validate:"required"`
 
 	// TODO : Добавить подписку
 	// Телефон/email для логина
 }
 
-func NewUser(name,surname,lastName string, addressID uuid.UUID) (*User, error){
+func NewUser(person *person.Person, addressID uuid.UUID) (*User, error){
 	id := uuid.New()
-	
-	p, err := person.NewPerson(name,surname,lastName)
-	if err != nil{
-		return nil, err
-	}
 
 	u := User{
 		ID: id,
-		Person: p,
+		Person: person,
 		AddressID: addressID,
 	}
 
@@ -42,12 +37,18 @@ func NewUser(name,surname,lastName string, addressID uuid.UUID) (*User, error){
 }
 
 func (u *User) UpdateUser(person person.Person, addressID uuid.UUID) error{
-	u.Person = &person
-	u.AddressID = addressID
+	next := User{
+		ID: u.ID,
+		Person: &person,
+		AddressID: addressID,
+	}
 
-	if err := u.Validate(); err != nil{
+	if err := next.Validate(); err != nil{
 		return fmt.Errorf("validate: %w", err)
 	}
+
+	u.Person = next.Person
+	u.AddressID = next.AddressID
 	return nil
 }
 
