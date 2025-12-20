@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/hihikaAAa/TrashProject/internal/domain/person"
 	"github.com/hihikaAAa/TrashProject/internal/domain/worker"
 	postgreserrors "github.com/hihikaAAa/TrashProject/internal/postgres/postgres_errors"
 )
@@ -27,12 +28,12 @@ func (r *WorkerRepository) AddWorker(ctx context.Context, worker *worker.Worker)
 	VALUES ($1, $2, $3, $4, $5) 
 	`
 
-	err := r.CheckNotExists(ctx, worker.FirstName, worker.Surname, worker.LastName)
+	err := r.CheckNotExists(ctx, worker.Person.FirstName, worker.Person.Surname, worker.Person.LastName)
 	if err != nil {
 		return err
 	}
 
-	_, err = r.db.ExecContext(ctx, q, worker.ID, worker.FirstName, worker.Surname, worker.LastName, false)
+	_, err = r.db.ExecContext(ctx, q, worker.ID, worker.Person.FirstName, worker.Person.Surname, worker.Person.LastName, false)
 	if err != nil {
 		return fmt.Errorf("%s, ExecContext: %w", op, err)
 	}
@@ -66,8 +67,8 @@ func (r *WorkerRepository) SetIsActive(ctx context.Context, id uuid.UUID, active
 	RETURNING worker_id, first_name, surname, last_name, is_active
 	`
 
-	w := &worker.Worker{}
-	err := r.db.QueryRowContext(ctx, q, id, active).Scan(&w.ID, &w.FirstName, &w.Surname, &w.LastName, &w.IsActive)
+	w := &worker.Worker{Person: &person.Person{}}
+	err := r.db.QueryRowContext(ctx, q, id, active).Scan(&w.ID, &w.Person.FirstName, &w.Person.Surname, &w.Person.LastName, &w.IsActive)
 	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("%s, %w", op, postgreserrors.ErrWorkerNotFound)
 	}
@@ -94,8 +95,8 @@ func (r *WorkerRepository) FindActive(ctx context.Context) ([]*worker.Worker, er
 
 	activeWorkers := make([]*worker.Worker, 0)
 	for rows.Next() {
-		w := &worker.Worker{}
-		err := rows.Scan(&w.ID, &w.FirstName, &w.Surname, &w.IsActive)
+		w := &worker.Worker{Person: &person.Person{}}
+		err := rows.Scan(&w.ID, &w.Person.FirstName, &w.Person.Surname, &w.IsActive)
 		if err != nil {
 			return nil, fmt.Errorf("%s, Scan: %w", op, err)
 		}
@@ -116,8 +117,8 @@ func (r *WorkerRepository) GetByID(ctx context.Context, id uuid.UUID) (*worker.W
 	WHERE worker_id = $1
 	`
 
-	w := &worker.Worker{}
-	err := r.db.QueryRowContext(ctx, q, id).Scan(&w.ID, &w.FirstName, &w.Surname, &w.LastName, &w.IsActive)
+	w := &worker.Worker{Person: &person.Person{}}
+	err := r.db.QueryRowContext(ctx, q, id).Scan(&w.ID, &w.Person.FirstName, &w.Person.Surname, &w.Person.LastName, &w.IsActive)
 	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("%s: %w", op, postgreserrors.ErrWorkerNotFound)
 	}
@@ -144,8 +145,8 @@ func (r *WorkerRepository) List(ctx context.Context) ([]*worker.Worker, error) {
 	workers := make([]*worker.Worker, 0)
 
 	for rows.Next() {
-		w := &worker.Worker{}
-		err := rows.Scan(&w.ID, &w.FirstName, &w.Surname, &w.LastName, &w.IsActive)
+		w := &worker.Worker{Person: &person.Person{}}
+		err := rows.Scan(&w.ID, &w.Person.FirstName, &w.Person.Surname, &w.Person.LastName, &w.IsActive)
 		if err != nil {
 			return nil, fmt.Errorf("%s, Scan: %w", op, err)
 		}
@@ -192,9 +193,9 @@ func (r *WorkerRepository) UpdateWorker(ctx context.Context, w *worker.Worker) (
 	RETURNING worker_id, first_name, surname, last_name, is_active
 	`
 
-	worker := &worker.Worker{}
-	err := r.db.QueryRowContext(ctx, q, w.ID, w.FirstName, w.Surname, w.LastName, w.IsActive).Scan(
-		&worker.ID, &worker.FirstName, &worker.Surname, &worker.LastName, &worker.IsActive,
+	worker := &worker.Worker{Person: &person.Person{}}
+	err := r.db.QueryRowContext(ctx, q, w.ID, w.Person.FirstName, w.Person.Surname, w.Person.LastName, w.IsActive).Scan(
+		&worker.ID, &worker.Person.FirstName, &worker.Person.Surname, &worker.Person.LastName, &worker.IsActive,
 	)
 	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("%s, %w", op, postgreserrors.ErrWorkerNotFound)

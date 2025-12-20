@@ -38,20 +38,14 @@ func TestWorkerRepository_AddWorker_Success(t *testing.T) {
 
 	ctx := context.Background()
 
-	w := &worker.Worker{
-		ID:        uuid.New(),
-		FirstName: "Ivan",
-		Surname:   "Ivanov",
-		LastName:  "Ivanovich",
-		IsActive:  false,
-	}
+	w, _ := worker.NewWorker("Ivan", "Ivanov", "Ivanovich")
 
 	mock.ExpectQuery("SELECT 1 FROM workers").
-		WithArgs(w.FirstName, w.Surname, w.LastName).
+		WithArgs(w.Person.FirstName, w.Person.Surname, w.Person.LastName).
 		WillReturnError(sql.ErrNoRows)
 
 	mock.ExpectExec("INSERT INTO workers").
-		WithArgs(w.ID, w.FirstName, w.Surname, w.LastName, w.IsActive).
+		WithArgs(w.ID, w.Person.FirstName, w.Person.Surname, w.Person.LastName, w.IsActive).
 		WillReturnResult(sqlmock.NewResult(0, 1))
 
 	err := repo.AddWorker(ctx, w)
@@ -70,17 +64,11 @@ func TestWorkerRepository_AddWorker_WorkerAlreadyExists(t *testing.T) {
 
 	ctx := context.Background()
 
-	w := &worker.Worker{
-		ID:        uuid.New(),
-		FirstName: "Ivan",
-		Surname:   "Ivanov",
-		LastName:  "Ivanovich",
-		IsActive:  false,
-	}
+	w, _ := worker.NewWorker("Ivan", "Ivanov", "Ivanovich")
 
 	rows := sqlmock.NewRows([]string{"dummy"}).AddRow(1)
 	mock.ExpectQuery("SELECT 1 FROM workers").
-		WithArgs(w.FirstName, w.Surname, w.LastName).
+		WithArgs(w.Person.FirstName, w.Person.Surname, w.Person.LastName).
 		WillReturnRows(rows)
 
 	err := repo.AddWorker(ctx, w)
@@ -279,7 +267,7 @@ func TestWorkerRepository_GetByID_Success(t *testing.T) {
 		t.Fatalf("GetByID returned error: %v", err)
 	}
 
-	if w.ID != id || w.FirstName != "Ivan" {
+	if w.ID != id || w.Person.FirstName != "Ivan" {
 		t.Fatalf("unexpected worker: %+v", w)
 	}
 }
@@ -419,16 +407,10 @@ func TestWorkerRepository_UpdateWorker_Success(t *testing.T) {
 
 	ctx := context.Background()
 
-	w := &worker.Worker{
-		ID:        uuid.New(),
-		FirstName: "Ivan",
-		Surname:   "Ivanov",
-		LastName:  "Ivanovich",
-		IsActive:  true,
-	}
+	w, _ := worker.NewWorker("Ivan", "Ivanov", "Ivanovich")
 
 	rows := sqlmock.NewRows([]string{"worker_id", "first_name", "surname", "last_name", "is_active"}).
-		AddRow(w.ID, w.FirstName, w.Surname, w.LastName, w.IsActive)
+		AddRow(w.ID, w.Person.FirstName, w.Person.Surname, w.Person.LastName, w.IsActive)
 
 	mock.ExpectQuery(regexp.QuoteMeta(`
 		UPDATE workers
@@ -436,7 +418,7 @@ func TestWorkerRepository_UpdateWorker_Success(t *testing.T) {
 		WHERE worker_id = $1
 		RETURNING worker_id, first_name, surname, last_name, is_active
 	`)).
-		WithArgs(w.ID, w.FirstName, w.Surname, w.LastName, w.IsActive).
+		WithArgs(w.ID, w.Person.FirstName, w.Person.Surname, w.Person.LastName, w.IsActive).
 		WillReturnRows(rows)
 
 	updated, err := repo.UpdateWorker(ctx, w)
@@ -444,7 +426,7 @@ func TestWorkerRepository_UpdateWorker_Success(t *testing.T) {
 		t.Fatalf("UpdateWorker returned error: %v", err)
 	}
 
-	if updated.ID != w.ID || updated.FirstName != w.FirstName {
+	if updated.ID != w.ID || updated.Person.FirstName != w.Person.FirstName {
 		t.Fatalf("unexpected updated worker: %+v", updated)
 	}
 }
@@ -455,16 +437,10 @@ func TestWorkerRepository_UpdateWorker_NotFound(t *testing.T) {
 
 	ctx := context.Background()
 
-	w := &worker.Worker{
-		ID:        uuid.New(),
-		FirstName: "Ivan",
-		Surname:   "Ivanov",
-		LastName:  "Ivanovich",
-		IsActive:  true,
-	}
+	w, _ := worker.NewWorker("Ivan", "Ivanov", "Ivanovich")
 
 	mock.ExpectQuery("UPDATE workers").
-		WithArgs(w.ID, w.FirstName, w.Surname, w.LastName, w.IsActive).
+		WithArgs(w.ID, w.Person.FirstName, w.Person.Surname, w.Person.LastName, w.IsActive).
 		WillReturnError(sql.ErrNoRows)
 
 	_, err := repo.UpdateWorker(ctx, w)
@@ -479,18 +455,13 @@ func TestWorkerRepository_UpdateWorker_DBError(t *testing.T) {
 
 	ctx := context.Background()
 
-	w := &worker.Worker{
-		ID:        uuid.New(),
-		FirstName: "Ivan",
-		Surname:   "Ivanov",
-		LastName:  "Ivanovich",
-		IsActive:  true,
-	}
+	w, _ := worker.NewWorker("Ivan", "Ivanov", "Ivanovich")
+	w.IsActive = true
 
 	dbErr := errors.New("db error")
 
 	mock.ExpectQuery("UPDATE workers").
-		WithArgs(w.ID, w.FirstName, w.Surname, w.LastName, w.IsActive).
+		WithArgs(w.ID, w.Person.FirstName, w.Person.Surname, w.Person.LastName, w.IsActive).
 		WillReturnError(dbErr)
 
 	_, err := repo.UpdateWorker(ctx, w)

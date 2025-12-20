@@ -36,14 +36,7 @@ func TestUserRepository_AddUser_Success(t *testing.T) {
 	defer cleanup()
 
 	ctx := context.Background()
-
-	u := &user.User{
-		ID:        uuid.New(),
-		FirstName: "Ivan",
-		Surname:   "Ivanov",
-		LastName:  "Ivanovich",
-		AddressID: uuid.New(),
-	}
+	u, _ := user.NewUser("Ivan", "Ivanov", "Ivanovich", uuid.New())
 
 	mock.ExpectQuery(
 		regexp.QuoteMeta(`
@@ -52,7 +45,7 @@ func TestUserRepository_AddUser_Success(t *testing.T) {
 			WHERE first_name = $1 AND surname = $2 AND last_name = $3
 		`),
 	).
-		WithArgs(u.FirstName, u.Surname, u.LastName).
+		WithArgs(u.Person.FirstName, u.Person.Surname, u.Person.LastName).
 		WillReturnError(sql.ErrNoRows)
 
 	mock.ExpectExec(
@@ -61,7 +54,7 @@ func TestUserRepository_AddUser_Success(t *testing.T) {
 			VALUES ($1, $2, $3, $4, $5)
 		`),
 	).
-		WithArgs(u.ID, u.FirstName, u.Surname, u.LastName, u.AddressID).
+		WithArgs(u.ID, u.Person.FirstName, u.Person.Surname, u.Person.LastName, u.AddressID).
 		WillReturnResult(sqlmock.NewResult(0, 1))
 
 	err := repo.AddUser(ctx, u)
@@ -80,13 +73,7 @@ func TestUserRepository_AddUser_UserAlreadyExists(t *testing.T) {
 
 	ctx := context.Background()
 
-	u := &user.User{
-		ID:        uuid.New(),
-		FirstName: "Ivan",
-		Surname:   "Ivanov",
-		LastName:  "Ivanovich",
-		AddressID: uuid.New(),
-	}
+	u, _ := user.NewUser("Ivan", "Ivanov", "Ivanovich", uuid.New())
 
 	rows := sqlmock.NewRows([]string{"dummy"}).AddRow(1)
 	mock.ExpectQuery(
@@ -96,7 +83,7 @@ func TestUserRepository_AddUser_UserAlreadyExists(t *testing.T) {
 			WHERE first_name = $1 AND surname = $2 AND last_name = $3
 		`),
 	).
-		WithArgs(u.FirstName, u.Surname, u.LastName).
+		WithArgs(u.Person.FirstName, u.Person.Surname, u.Person.LastName).
 		WillReturnRows(rows)
 
 	err := repo.AddUser(ctx, u)
@@ -207,7 +194,7 @@ func TestUserRepository_GetByID_Success(t *testing.T) {
 		t.Fatalf("GetByID returned error: %v", err)
 	}
 
-	if u.ID != id || u.FirstName != "Ivan" || u.Surname != "Ivanov" || u.LastName != "Ivanovich" || u.AddressID != addrID {
+	if u.ID != id || u.Person.FirstName != "Ivan" || u.Person.Surname != "Ivanov" || u.Person.LastName != "Ivanovich" || u.AddressID != addrID {
 		t.Fatalf("unexpected user: %+v", u)
 	}
 
@@ -396,16 +383,10 @@ func TestUserRepository_UpdateUser_Success(t *testing.T) {
 
 	ctx := context.Background()
 
-	u := &user.User{
-		ID:        uuid.New(),
-		FirstName: "Ivan",
-		Surname:   "Ivanov",
-		LastName:  "Ivanovich",
-		AddressID: uuid.New(),
-	}
+	u, _ := user.NewUser("Ivan", "Ivanov", "Ivanovich", uuid.New())
 
 	rows := sqlmock.NewRows([]string{"user_id", "first_name", "surname", "last_name", "address_id"}).
-		AddRow(u.ID, u.FirstName, u.Surname, u.LastName, u.AddressID)
+		AddRow(u.ID, u.Person.FirstName, u.Person.Surname, u.Person.LastName, u.AddressID)
 
 	mock.ExpectQuery(
 		regexp.QuoteMeta(`
@@ -419,7 +400,7 @@ func TestUserRepository_UpdateUser_Success(t *testing.T) {
 			RETURNING user_id, first_name, surname, last_name, address_id
 		`),
 	).
-		WithArgs(u.ID, u.FirstName, u.Surname, u.LastName, u.AddressID).
+		WithArgs(u.ID, u.Person.FirstName, u.Person.Surname, u.Person.LastName, u.AddressID).
 		WillReturnRows(rows)
 
 	updated, err := repo.UpdateUser(ctx, u)
@@ -427,7 +408,7 @@ func TestUserRepository_UpdateUser_Success(t *testing.T) {
 		t.Fatalf("UpdateUser returned error: %v", err)
 	}
 
-	if updated.ID != u.ID || updated.FirstName != u.FirstName {
+	if updated.ID != u.ID || updated.Person.FirstName != u.Person.FirstName {
 		t.Fatalf("unexpected updated user: %+v", updated)
 	}
 }
@@ -438,13 +419,7 @@ func TestUserRepository_UpdateUser_NotFound(t *testing.T) {
 
 	ctx := context.Background()
 
-	u := &user.User{
-		ID:        uuid.New(),
-		FirstName: "Ivan",
-		Surname:   "Ivanov",
-		LastName:  "Ivanovich",
-		AddressID: uuid.New(),
-	}
+	u, _ := user.NewUser("Ivan", "Ivanov", "Ivanovich", uuid.New())
 
 	mock.ExpectQuery(
 		regexp.QuoteMeta(`
@@ -458,7 +433,7 @@ func TestUserRepository_UpdateUser_NotFound(t *testing.T) {
 			RETURNING user_id, first_name, surname, last_name, address_id
 		`),
 	).
-		WithArgs(u.ID, u.FirstName, u.Surname, u.LastName, u.AddressID).
+		WithArgs(u.ID, u.Person.FirstName, u.Person.Surname, u.Person.LastName, u.AddressID).
 		WillReturnError(sql.ErrNoRows)
 
 	_, err := repo.UpdateUser(ctx, u)

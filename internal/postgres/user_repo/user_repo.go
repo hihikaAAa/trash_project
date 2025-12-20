@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/hihikaAAa/TrashProject/internal/domain/person"
 	"github.com/hihikaAAa/TrashProject/internal/domain/user"
 	postgreserrors "github.com/hihikaAAa/TrashProject/internal/postgres/postgres_errors"
 )
@@ -26,11 +27,11 @@ func (r *UserRepository) AddUser(ctx context.Context, user *user.User) error {
 	INSERT INTO users(user_id, first_name, surname, last_name, address_id)
 	VALUES ($1, $2, $3, $4, $5)
 	`
-	err := r.CheckNotExists(ctx, user.FirstName, user.Surname, user.LastName)
+	err := r.CheckNotExists(ctx, user.Person.FirstName, user.Person.Surname, user.Person.LastName)
 	if err != nil {
 		return err
 	}
-	_, err = r.db.ExecContext(ctx, q, user.ID, user.FirstName, user.Surname, user.LastName, user.AddressID)
+	_, err = r.db.ExecContext(ctx, q, user.ID, user.Person.FirstName, user.Person.Surname, user.Person.LastName, user.AddressID)
 	if err != nil {
 		return fmt.Errorf("%s, ExecContext: %w", op, err)
 	}
@@ -65,8 +66,8 @@ func (r *UserRepository) GetByID(ctx context.Context, id uuid.UUID) (*user.User,
 	WHERE user_id = $1
 	`
 
-	u := &user.User{}
-	err := r.db.QueryRowContext(ctx, q, id).Scan(&u.ID, &u.FirstName, &u.Surname, &u.LastName, &u.AddressID)
+	u := &user.User{Person: &person.Person{}}
+	err := r.db.QueryRowContext(ctx, q, id).Scan(&u.ID, &u.Person.FirstName, &u.Person.Surname, &u.Person.LastName, &u.AddressID)
 	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("%s: %w", op, postgreserrors.ErrUserNotFound)
 	}
@@ -85,8 +86,8 @@ func (r *UserRepository) FindByFullName(ctx context.Context, name, surname, last
 	WHERE first_name = $1 AND surname = $2 AND last_name = $3
 	`
 
-	u := &user.User{}
-	err := r.db.QueryRowContext(ctx, q, name, surname, lastName).Scan(&u.ID, &u.FirstName, &u.Surname, &u.LastName, &u.AddressID)
+	u := &user.User{Person: &person.Person{}}
+	err := r.db.QueryRowContext(ctx, q, name, surname, lastName).Scan(&u.ID, &u.Person.FirstName, &u.Person.Surname, &u.Person.LastName, &u.AddressID)
 	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("%s: %w", op, postgreserrors.ErrUserNotFound)
 	}
@@ -113,8 +114,8 @@ func (r *UserRepository) List(ctx context.Context) ([]*user.User, error) {
 	users := make([]*user.User, 0)
 
 	for rows.Next() {
-		u := &user.User{}
-		err := rows.Scan(&u.ID, &u.FirstName, &u.Surname, &u.LastName, &u.AddressID)
+		u := &user.User{Person: &person.Person{}}
+		err := rows.Scan(&u.ID, &u.Person.FirstName, &u.Person.Surname, &u.Person.LastName, &u.AddressID)
 		if err != nil {
 			return nil, fmt.Errorf("%s, Scan: %w", op, err)
 		}
@@ -161,9 +162,9 @@ func (r *UserRepository) UpdateUser(ctx context.Context, u *user.User) (*user.Us
 	RETURNING user_id, first_name, surname, last_name, address_id
 	`
 
-	user := &user.User{}
-	err := r.db.QueryRowContext(ctx, q, u.ID, u.FirstName, u.Surname, u.LastName, u.AddressID).Scan(
-		&user.ID, &user.FirstName, &user.Surname, &user.LastName, &user.AddressID,
+	user := &user.User{Person: &person.Person{}}
+	err := r.db.QueryRowContext(ctx, q, u.ID, u.Person.FirstName, u.Person.Surname, u.Person.LastName, u.AddressID).Scan(
+		&user.ID, &user.Person.FirstName, &user.Person.Surname, &user.Person.LastName, &user.AddressID,
 	)
 	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("%s, %w", op, postgreserrors.ErrUserNotFound)
