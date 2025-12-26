@@ -12,33 +12,40 @@ import (
 	postgreserrors "github.com/hihikaAAa/TrashProject/internal/postgres/postgres_errors"
 )
 
-type UserRepository struct {
+
+type UserRepository interface{
+	AddUser(ctx context.Context, user *user.User) error
+	CheckNotExists(ctx context.Context, email string) error
+	GetByID(ctx context.Context, id uuid.UUID) (*user.User, error)
+	FindByFullName(ctx context.Context, name, surname, lastName string) (*user.User, error)
+	List(ctx context.Context) ([]*user.User, error)
+	DeleteUser(ctx context.Context, id uuid.UUID) error
+	UpdateUser(ctx context.Context, u *user.User) (*user.User, error)
+}
+type userRepository struct {
 	db *sql.DB
 }
 
-func NewUserRepository(db *sql.DB) *UserRepository {
-	return &UserRepository{db: db}
+func NewUserRepository(db *sql.DB) UserRepository {
+	return &userRepository{db: db}
 }
 
-func (r *UserRepository) AddUser(ctx context.Context, user *user.User) error {
+
+func (r *userRepository) AddUser(ctx context.Context, user *user.User) error {
 	const op = "internal.postgres.user_repo.AddUser"
 
 	const q = `
 	INSERT INTO users(user_id, first_name, surname, last_name, address_id)
 	VALUES ($1, $2, $3, $4, $5)
 	`
-	err := r.CheckNotExists(ctx, user.Person.FirstName, user.Person.Surname, user.Person.LastName)
-	if err != nil {
-		return err
-	}
-	_, err = r.db.ExecContext(ctx, q, user.ID, user.Person.FirstName, user.Person.Surname, user.Person.LastName, user.AddressID)
+	_, err := r.db.ExecContext(ctx, q, user.ID, user.Person.FirstName, user.Person.Surname, user.Person.LastName, user.AddressID)
 	if err != nil {
 		return fmt.Errorf("%s, ExecContext: %w", op, err)
 	}
 	return nil
 }
 
-func (r *UserRepository) CheckNotExists(ctx context.Context, name, surname, lastName string) error {
+func (r *userRepository) CheckNotExists(ctx context.Context, email string) error {
 	const op = "internal.postgres.user_repo.CheckNotExists"
 
 	const q = `
@@ -47,7 +54,7 @@ func (r *UserRepository) CheckNotExists(ctx context.Context, name, surname, last
 	WHERE first_name = $1 AND surname = $2 AND last_name = $3
 	`
 	var dummy int
-	err := r.db.QueryRowContext(ctx, q, name, surname, lastName).Scan(&dummy)
+	err := r.db.QueryRowContext(ctx, q, email).Scan(&dummy)
 	if err == sql.ErrNoRows {
 		return nil
 	}
@@ -57,7 +64,7 @@ func (r *UserRepository) CheckNotExists(ctx context.Context, name, surname, last
 	return postgreserrors.ErrUserExists
 }
 
-func (r *UserRepository) GetByID(ctx context.Context, id uuid.UUID) (*user.User, error) {
+func (r *userRepository) GetByID(ctx context.Context, id uuid.UUID) (*user.User, error) {
 	const op = "internal.postgres.user_repo.GetByID"
 
 	const q = `
@@ -77,7 +84,7 @@ func (r *UserRepository) GetByID(ctx context.Context, id uuid.UUID) (*user.User,
 	return u, nil
 }
 
-func (r *UserRepository) FindByFullName(ctx context.Context, name, surname, lastName string) (*user.User, error) {
+func (r *userRepository) FindByFullName(ctx context.Context, name, surname, lastName string) (*user.User, error) {
 	const op = "internal.postgres.user_repo.FindByFullName"
 
 	const q = `
@@ -97,7 +104,7 @@ func (r *UserRepository) FindByFullName(ctx context.Context, name, surname, last
 	return u, nil
 }
 
-func (r *UserRepository) List(ctx context.Context) ([]*user.User, error) {
+func (r *userRepository) List(ctx context.Context) ([]*user.User, error) {
 	const op = "internal.postgres.user_repo.List"
 
 	const q = `
@@ -128,7 +135,7 @@ func (r *UserRepository) List(ctx context.Context) ([]*user.User, error) {
 	return users, nil
 }
 
-func (r *UserRepository) DeleteUser(ctx context.Context, id uuid.UUID) error {
+func (r *userRepository) DeleteUser(ctx context.Context, id uuid.UUID) error {
 	const op = "internal.postgres.user_repo.DeleteUser"
 
 	const q = `
@@ -152,7 +159,7 @@ func (r *UserRepository) DeleteUser(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
-func (r *UserRepository) UpdateUser(ctx context.Context, u *user.User) (*user.User, error) {
+func (r *userRepository) UpdateUser(ctx context.Context, u *user.User) (*user.User, error) {
 	const op = "internal.postgres.user_repo.UpdateUser"
 
 	const q = `

@@ -11,15 +11,27 @@ import (
 	postgreserrors "github.com/hihikaAAa/TrashProject/internal/postgres/postgres_errors"
 )
 
-type TaskRepository struct {
+type TaskRepository interface {
+	AddTask(ctx context.Context, task *task.Task) error
+	GetByID(ctx context.Context, id uuid.UUID) (*task.Task, error)
+	ListByClientID(ctx context.Context, clientID uuid.UUID) ([]*task.Task, error)
+	ListActiveByWorkerID(ctx context.Context, workerID uuid.UUID) ([]*task.Task, error)
+	ListDoneByWorkerID(ctx context.Context, workerID uuid.UUID) ([]*task.Task, error)
+	DeleteTask(ctx context.Context, id uuid.UUID) error
+	UpdateStatus(ctx context.Context, id uuid.UUID, status task.Status) (*task.Task, error)
+	HasOpenTaskForClient(ctx context.Context, clientID uuid.UUID) (bool, error)
+	AssignWorker(ctx context.Context, taskID uuid.UUID, workerID uuid.UUID) (*task.Task, error)
+	ListOpenTasks(ctx context.Context) ([]*task.Task, error)
+}
+type taskRepository struct {
 	db *sql.DB
 }
 
-func NewTaskRepository(db *sql.DB) *TaskRepository {
-	return &TaskRepository{db: db}
+func NewTaskRepository(db *sql.DB) TaskRepository {
+	return &taskRepository{db: db}
 }
 
-func (r *TaskRepository) AddTask(ctx context.Context, task *task.Task) error {
+func (r *taskRepository) AddTask(ctx context.Context, task *task.Task) error {
 	const op = "internal.postgres.task_repo.AddTask"
 
 	const q = `
@@ -34,7 +46,7 @@ func (r *TaskRepository) AddTask(ctx context.Context, task *task.Task) error {
 	return nil
 }
 
-func (r *TaskRepository) GetByID(ctx context.Context, id uuid.UUID) (*task.Task, error) {
+func (r *taskRepository) GetByID(ctx context.Context, id uuid.UUID) (*task.Task, error) {
 	const op = "internal.postgres.task_repo.GetByID"
 
 	const q = `
@@ -55,7 +67,7 @@ func (r *TaskRepository) GetByID(ctx context.Context, id uuid.UUID) (*task.Task,
 	return t, nil
 }
 
-func (r *TaskRepository) ListByClientID(ctx context.Context, clientID uuid.UUID) ([]*task.Task, error) {
+func (r *taskRepository) ListByClientID(ctx context.Context, clientID uuid.UUID) ([]*task.Task, error) {
 	const op = "internal.postgres.task_repo.ListByClientID"
 
 	const q = `
@@ -87,7 +99,7 @@ func (r *TaskRepository) ListByClientID(ctx context.Context, clientID uuid.UUID)
 	return tasks, nil
 }
 
-func (r *TaskRepository) ListActiveByWorkerID(ctx context.Context, workerID uuid.UUID) ([]*task.Task, error) {
+func (r *taskRepository) ListActiveByWorkerID(ctx context.Context, workerID uuid.UUID) ([]*task.Task, error) {
 	const op = "internal.postgres.task_repo.ListActiveByWorkerID"
 
 	const q = `
@@ -119,7 +131,7 @@ func (r *TaskRepository) ListActiveByWorkerID(ctx context.Context, workerID uuid
 	return tasks, nil
 }
 
-func (r *TaskRepository) ListDoneByWorkerID(ctx context.Context, workerID uuid.UUID) ([]*task.Task, error) {
+func (r *taskRepository) ListDoneByWorkerID(ctx context.Context, workerID uuid.UUID) ([]*task.Task, error) {
 	const op = "internal.postgres.task_repo.ListDoneByWorkerID"
 
 	const q = `
@@ -151,7 +163,7 @@ func (r *TaskRepository) ListDoneByWorkerID(ctx context.Context, workerID uuid.U
 	return tasks, nil
 }
 
-func (r *TaskRepository) DeleteTask(ctx context.Context, id uuid.UUID) error {
+func (r *taskRepository) DeleteTask(ctx context.Context, id uuid.UUID) error {
 	const op = "internal.postgres.task_repo.DeleteTask"
 
 	const q = `
@@ -175,7 +187,7 @@ func (r *TaskRepository) DeleteTask(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
-func (r *TaskRepository) UpdateStatus(ctx context.Context, id uuid.UUID, status task.Status) (*task.Task, error) {
+func (r *taskRepository) UpdateStatus(ctx context.Context, id uuid.UUID, status task.Status) (*task.Task, error) {
 	const op = "internal.postgres.task_repo.UpdateStatus"
 
 	const q = `
@@ -198,7 +210,7 @@ func (r *TaskRepository) UpdateStatus(ctx context.Context, id uuid.UUID, status 
 	return task, nil
 }
 
-func (r *TaskRepository) HasOpenTaskForClient(ctx context.Context, clientID uuid.UUID) (bool, error) {
+func (r *taskRepository) HasOpenTaskForClient(ctx context.Context, clientID uuid.UUID) (bool, error) {
 	const op = "internal.postgres.task_repo.HasOpenTaskForClient"
 
 	const q = `
@@ -219,7 +231,7 @@ func (r *TaskRepository) HasOpenTaskForClient(ctx context.Context, clientID uuid
 	return true, nil
 }
 
-func (r *TaskRepository) AssignWorker(ctx context.Context, taskID uuid.UUID, workerID uuid.UUID) (*task.Task, error) {
+func (r *taskRepository) AssignWorker(ctx context.Context, taskID uuid.UUID, workerID uuid.UUID) (*task.Task, error) {
 	const op = "internal.postgres.task_repo.AssignWorker"
 
 	const q = `
@@ -242,7 +254,7 @@ func (r *TaskRepository) AssignWorker(ctx context.Context, taskID uuid.UUID, wor
 	return t, nil
 }
 
-func (r *TaskRepository) ListOpenTasks(ctx context.Context) ([]*task.Task, error) {
+func (r *taskRepository) ListOpenTasks(ctx context.Context) ([]*task.Task, error) {
 	const op = "internal.postgres.task_repo.ListOpenTasks"
 
 	const q = `

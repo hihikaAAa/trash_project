@@ -15,7 +15,7 @@ import (
 	postgreserrors "github.com/hihikaAAa/TrashProject/internal/postgres/postgres_errors"
 )
 
-func newTestUserRepo(t *testing.T) (*UserRepository, sqlmock.Sqlmock, func()) {
+func newTestUserRepo(t *testing.T) (UserRepository, sqlmock.Sqlmock, func()) {
 	t.Helper()
 
 	db, mock, err := sqlmock.New()
@@ -98,7 +98,7 @@ func TestUserRepository_AddUser_UserAlreadyExists(t *testing.T) {
 	}
 }
 
-func TestUserRepository_CheckNotExists_NoRows(t *testing.T) {
+func TestUserRepository_CheckNotExists_NoRows(t *testing.T) {   //TODO: CHECK TESTS EMAIL
 	repo, mock, cleanup := newTestUserRepo(t)
 	defer cleanup()
 
@@ -114,7 +114,7 @@ func TestUserRepository_CheckNotExists_NoRows(t *testing.T) {
 		WithArgs("Ivan", "Ivanov", "Ivanovich").
 		WillReturnError(sql.ErrNoRows)
 
-	err := repo.CheckNotExists(ctx, "Ivan", "Ivanov", "Ivanovich")
+	err := repo.CheckNotExists(ctx, "email")
 	if err != nil {
 		t.Fatalf("expected nil, got: %v", err)
 	}
@@ -124,7 +124,7 @@ func TestUserRepository_CheckNotExists_NoRows(t *testing.T) {
 	}
 }
 
-func TestUserRepository_CheckNotExists_Exists(t *testing.T) {
+func TestUserRepository_CheckNotExists_Exists(t *testing.T) {   //TODO: CHECK TESTS EMAIL
 	repo, mock, cleanup := newTestUserRepo(t)
 	defer cleanup()
 
@@ -141,13 +141,13 @@ func TestUserRepository_CheckNotExists_Exists(t *testing.T) {
 		WithArgs("Ivan", "Ivanov", "Ivanovich").
 		WillReturnRows(rows)
 
-	err := repo.CheckNotExists(ctx, "Ivan", "Ivanov", "Ivanovich")
+	err := repo.CheckNotExists(ctx, "email")
 	if !errors.Is(err, postgreserrors.ErrUserExists) {
 		t.Fatalf("expected ErrUserExists, got: %v", err)
 	}
 }
 
-func TestUserRepository_CheckNotExists_DBError(t *testing.T) {
+func TestUserRepository_CheckNotExists_DBError(t *testing.T) { //TODO: CHECK TESTS EMAIL
 	repo, mock, cleanup := newTestUserRepo(t)
 	defer cleanup()
 
@@ -164,7 +164,7 @@ func TestUserRepository_CheckNotExists_DBError(t *testing.T) {
 		WithArgs("Ivan", "Ivanov", "Ivanovich").
 		WillReturnError(dbErr)
 
-	err := repo.CheckNotExists(ctx, "Ivan", "Ivanov", "Ivanovich")
+	err := repo.CheckNotExists(ctx, "email")
 	if err == nil || !errors.Is(err, dbErr) {
 		t.Fatalf("expected wrapped db error, got: %v", err)
 	}

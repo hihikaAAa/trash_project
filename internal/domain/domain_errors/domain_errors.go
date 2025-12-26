@@ -15,4 +15,6 @@ var(
 	ErrWorkerAlreadyActive = errors.New("worker already active")
 	ErrWorkerAlreadyDeactive = errors.New("worker already deactive")
 	ErrTaskIsNotFound = errors.New("task is not found")
+
+	ErrUserExists = errors.New("user already exists")
 )

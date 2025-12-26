@@ -12,33 +12,33 @@ var validate = validator.New()
 type Person struct {
 	FirstName string `json:"first_name" validate:"required,min=1,max=30"`
 	Surname   string `json:"surname" validate:"required,min=1,max=30"`
-	LastName  string `json:"last_name,omitempty"`
+	LastName  string `json:"last_name,omitempty" validate:"min=0,max=30"`
 }
 
-func NewPerson(name, surname, lastName string)(*Person ,error){
+func NewPerson(name, surname, lastName string) (*Person, error) {
 	p := Person{
 		FirstName: name,
-		Surname: surname,
-		LastName: lastName,
+		Surname:   surname,
+		LastName:  lastName,
 	}
 
-	if err := p.Validate(); err != nil{
+	if err := p.Validate(); err != nil {
 		return nil, fmt.Errorf("validate : %w", err)
 	}
 	return &p, nil
 }
 
-func (p *Person) UpdatePerson(name, surname, lastName string) error{
+func (p *Person) UpdatePerson(name, surname, lastName string) error {
 	p.FirstName = name
 	p.Surname = surname
 	p.LastName = lastName
 
-	if err := p.Validate(); err != nil{
+	if err := p.Validate(); err != nil {
 		return fmt.Errorf("validate : %w", err)
 	}
 	return nil
 }
 
-func (p *Person) Validate() error{
+func (p *Person) Validate() error {
 	return validate.Struct(p)
 }

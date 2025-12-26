@@ -15,7 +15,7 @@ import (
 	postgreserrors "github.com/hihikaAAa/TrashProject/internal/postgres/postgres_errors"
 )
 
-func newTestWorkerRepo(t *testing.T) (*WorkerRepository, sqlmock.Sqlmock, func()) {
+func newTestWorkerRepo(t *testing.T) (WorkerRepository, sqlmock.Sqlmock, func()) {
 	t.Helper()
 
 	db, mock, err := sqlmock.New()

@@ -12,15 +12,25 @@ import (
 	postgreserrors "github.com/hihikaAAa/TrashProject/internal/postgres/postgres_errors"
 )
 
-type WorkerRepository struct {
+type WorkerRepository interface {
+	AddWorker(ctx context.Context, worker *worker.Worker) error
+	CheckNotExists(ctx context.Context, name, surname, lastName string) error
+	SetIsActive(ctx context.Context, id uuid.UUID, active bool) (*worker.Worker, error)
+	FindActive(ctx context.Context) ([]*worker.Worker, error)
+	GetByID(ctx context.Context, id uuid.UUID) (*worker.Worker, error)
+	List(ctx context.Context) ([]*worker.Worker, error)
+	DeleteWorker(ctx context.Context, id uuid.UUID) error
+	UpdateWorker(ctx context.Context, w *worker.Worker) (*worker.Worker, error)
+}
+type workerRepository struct {
 	db *sql.DB
 }
 
-func NewWorkerRepository(db *sql.DB) *WorkerRepository {
-	return &WorkerRepository{db: db}
+func NewWorkerRepository(db *sql.DB) WorkerRepository {
+	return &workerRepository{db: db}
 }
 
-func (r *WorkerRepository) AddWorker(ctx context.Context, worker *worker.Worker) error {
+func (r *workerRepository) AddWorker(ctx context.Context, worker *worker.Worker) error {
 	const op = "internal.postgres.worker_repo.AddWorker"
 
 	const q = `
@@ -40,7 +50,7 @@ func (r *WorkerRepository) AddWorker(ctx context.Context, worker *worker.Worker)
 	return nil
 }
 
-func (r *WorkerRepository) CheckNotExists(ctx context.Context, name, surname, lastName string) error {
+func (r *workerRepository) CheckNotExists(ctx context.Context, name, surname, lastName string) error {
 	const op = "internal.postgres.worker_repo.CheckNotExists"
 
 	const q = `
@@ -57,7 +67,7 @@ func (r *WorkerRepository) CheckNotExists(ctx context.Context, name, surname, la
 	return postgreserrors.ErrWorkerExists
 }
 
-func (r *WorkerRepository) SetIsActive(ctx context.Context, id uuid.UUID, active bool) (*worker.Worker, error) {
+func (r *workerRepository) SetIsActive(ctx context.Context, id uuid.UUID, active bool) (*worker.Worker, error) {
 	const op = "internal.postgres.worker_repo.SetIsActive"
 
 	const q = `
@@ -78,7 +88,7 @@ func (r *WorkerRepository) SetIsActive(ctx context.Context, id uuid.UUID, active
 	return w, nil
 }
 
-func (r *WorkerRepository) FindActive(ctx context.Context) ([]*worker.Worker, error) {
+func (r *workerRepository) FindActive(ctx context.Context) ([]*worker.Worker, error) {
 	const op = "internal.postgres.worker_repo.FindActive"
 
 	const q = `
@@ -108,7 +118,7 @@ func (r *WorkerRepository) FindActive(ctx context.Context) ([]*worker.Worker, er
 	return activeWorkers, nil
 }
 
-func (r *WorkerRepository) GetByID(ctx context.Context, id uuid.UUID) (*worker.Worker, error) {
+func (r *workerRepository) GetByID(ctx context.Context, id uuid.UUID) (*worker.Worker, error) {
 	const op = "internal.postgres.worker_repo.GetByID"
 
 	const q = `
@@ -128,7 +138,7 @@ func (r *WorkerRepository) GetByID(ctx context.Context, id uuid.UUID) (*worker.W
 	return w, nil
 }
 
-func (r *WorkerRepository) List(ctx context.Context) ([]*worker.Worker, error) {
+func (r *workerRepository) List(ctx context.Context) ([]*worker.Worker, error) {
 	const op = "internal.postgres.worker_repo.List"
 
 	const q = `
@@ -159,7 +169,7 @@ func (r *WorkerRepository) List(ctx context.Context) ([]*worker.Worker, error) {
 	return workers, nil
 }
 
-func (r *WorkerRepository) DeleteWorker(ctx context.Context, id uuid.UUID) error {
+func (r *workerRepository) DeleteWorker(ctx context.Context, id uuid.UUID) error {
 	const op = "internal.postgres.worker_repo.DeleteWorker"
 
 	const q = `
@@ -183,7 +193,7 @@ func (r *WorkerRepository) DeleteWorker(ctx context.Context, id uuid.UUID) error
 	return nil
 }
 
-func (r *WorkerRepository) UpdateWorker(ctx context.Context, w *worker.Worker) (*worker.Worker, error) {
+func (r *workerRepository) UpdateWorker(ctx context.Context, w *worker.Worker) (*worker.Worker, error) {
 	const op = "internal.postgres.worker_repo.UpdateWorker"
 
 	const q = `

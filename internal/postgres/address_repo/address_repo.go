@@ -12,15 +12,23 @@ import (
 	postgreserrors "github.com/hihikaAAa/TrashProject/internal/postgres/postgres_errors"
 )
 
-type AddressRepository struct {
+type AddressRepository interface{
+	AddAddress(ctx context.Context, address *address.Address) error
+	CheckNotExists(ctx context.Context, street, houseNumber, entrance string, floorNumber, apartmentNumber int) error
+	GetByID(ctx context.Context, id uuid.UUID) (*address.Address, error)
+	List(ctx context.Context) ([]*address.Address, error)
+	DeleteAddress(ctx context.Context, id uuid.UUID) error
+	UpdateAddress(ctx context.Context, addr *address.Address) (*address.Address, error)
+}
+type addressRepository struct {
 	db *sql.DB
 }
 
-func NewAddressRepository(db *sql.DB) *AddressRepository {
-	return &AddressRepository{db: db}
+func NewAddressRepository(db *sql.DB) AddressRepository {
+	return &addressRepository{db: db}
 }
 
-func (r *AddressRepository) AddAddress(ctx context.Context, address *address.Address) error {
+func (r *addressRepository) AddAddress(ctx context.Context, address *address.Address) error {
 	const op = "internal.postgres.address_repo.AddAddress"
 
 	const q = `
@@ -41,7 +49,7 @@ func (r *AddressRepository) AddAddress(ctx context.Context, address *address.Add
 	return nil
 }
 
-func (r *AddressRepository) CheckNotExists(ctx context.Context, street, houseNumber, entrance string, floorNumber, apartmentNumber int) error {
+func (r *addressRepository) CheckNotExists(ctx context.Context, street, houseNumber, entrance string, floorNumber, apartmentNumber int) error {
 	const op = "internal.postgres.address_repo.CheckNotExists"
 
 	const q = `
@@ -60,7 +68,7 @@ func (r *AddressRepository) CheckNotExists(ctx context.Context, street, houseNum
 	return postgreserrors.ErrAddressExists
 }
 
-func (r *AddressRepository) GetByID(ctx context.Context, id uuid.UUID) (*address.Address, error) {
+func (r *addressRepository) GetByID(ctx context.Context, id uuid.UUID) (*address.Address, error) {
 	const op = "internal.postgres.address_repo.GetByID"
 
 	const q = `
@@ -81,7 +89,7 @@ func (r *AddressRepository) GetByID(ctx context.Context, id uuid.UUID) (*address
 	return a, nil
 }
 
-func (r *AddressRepository) List(ctx context.Context) ([]*address.Address, error) {
+func (r *addressRepository) List(ctx context.Context) ([]*address.Address, error) {
 	const op = "internal.postgres.address_repo.List"
 
 	const q = `
@@ -111,7 +119,7 @@ func (r *AddressRepository) List(ctx context.Context) ([]*address.Address, error
 	return addresses, nil
 }
 
-func (r *AddressRepository) DeleteAddress(ctx context.Context, id uuid.UUID) error {
+func (r *addressRepository) DeleteAddress(ctx context.Context, id uuid.UUID) error {
 	const op = "internal.postgres.address_repo.DeleteAddress"
 
 	const q = `
@@ -135,7 +143,7 @@ func (r *AddressRepository) DeleteAddress(ctx context.Context, id uuid.UUID) err
 	return nil
 }
 
-func (r *AddressRepository) UpdateAddress(ctx context.Context, addr *address.Address) (*address.Address, error) {
+func (r *addressRepository) UpdateAddress(ctx context.Context, addr *address.Address) (*address.Address, error) {
 	const op = "internal.postgres.address_repo.UpdateAddress"
 
 	const q = `

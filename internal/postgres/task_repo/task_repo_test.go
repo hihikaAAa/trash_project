@@ -13,7 +13,7 @@ import (
 	postgreserrors "github.com/hihikaAAa/TrashProject/internal/postgres/postgres_errors"
 )
 
-func newTestTaskRepo(t *testing.T) (*TaskRepository, sqlmock.Sqlmock, func()) {
+func newTestTaskRepo(t *testing.T) (TaskRepository, sqlmock.Sqlmock, func()) {
 	t.Helper()
 
 	db, mock, err := sqlmock.New()
