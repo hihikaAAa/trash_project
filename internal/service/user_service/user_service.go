@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	"github.com/hihikaAAa/TrashProject/internal/domain/address"
-	domainerrors "github.com/hihikaAAa/TrashProject/internal/domain/domain_errors"
 	"github.com/hihikaAAa/TrashProject/internal/domain/person"
 	"github.com/hihikaAAa/TrashProject/internal/domain/task"
 	"github.com/hihikaAAa/TrashProject/internal/domain/user"
@@ -15,6 +14,7 @@ import (
 	addressrepo "github.com/hihikaAAa/TrashProject/internal/postgres/address_repo"
 	taskrepo "github.com/hihikaAAa/TrashProject/internal/postgres/task_repo"
 	userrepo "github.com/hihikaAAa/TrashProject/internal/postgres/user_repo"
+	errorswrapper "github.com/hihikaAAa/TrashProject/internal/service/errors_wrapper"
 )
 
 type UserService struct {
@@ -36,7 +36,7 @@ func NewUserService(db *sql.DB) *UserService {
 
 func (u *UserService) CreateProfile(ctx context.Context, input dto.UserInput) (dto.UserOutput, error) { // Сейчас при первом создании юзера, передается пустой ID. Спросить, как это хендлить
 	if err := u.UserRepo.CheckNotExists(ctx, input.Email); err != nil { // Проверил на существование
-		return dto.UserOutput{}, domainerrors.ErrUserExists
+		return dto.UserOutput{}, errorswrapper.WrapRepoErr("u.userRepo.CheckNotExists", err)
 	}
 	adrs, err := address.NewAddress(input.Street, input.HouseNumber, input.Entrance, input.FloorNumber, input.ApartmentNumber)
 	if err != nil {
@@ -48,28 +48,28 @@ func (u *UserService) CreateProfile(ctx context.Context, input dto.UserInput) (d
 		return dto.UserOutput{}, fmt.Errorf("new person: %w", err)
 	}
 
-	user, err := user.NewUser(prs, adrs.ID)
+	usr, err := user.NewUser(prs, adrs.ID)
 	if err != nil {
 		return dto.UserOutput{}, fmt.Errorf("new user: %w", err)
 	}
 	// TODO: СЕЙЧАС КОД БЕЗ ТРАНЗАКЦИЙ, ДОБАВИТЬ ИХ
 	err = u.AddressRepo.AddAddress(ctx, adrs)
 	if err != nil {
-		return dto.UserOutput{}, fmt.Errorf("u.addressRepo.AddAddress: %w", err)
+		return dto.UserOutput{}, errorswrapper.WrapRepoErr("u.addressRepo.AddAddress",err)
 	}
-	err = u.UserRepo.AddUser(ctx, user)
+	err = u.UserRepo.AddUser(ctx, usr)
 	if err != nil {
-		return dto.UserOutput{}, fmt.Errorf("u.userRepo.AddUser: %w", err)
+		return dto.UserOutput{}, errorswrapper.WrapRepoErr("u.userRepo.AddUser", err)
 	}
 	return dto.UserOutput{
-		UserID: user.ID,
+		UserID: usr.ID,
 	}, nil
 }
 
 func (u *UserService) UpdateUserInfo(ctx context.Context, input dto.UserInput) (dto.UserOutput, error) {
-	user, err := u.UserRepo.GetByID(ctx, input.ID) // Получили юзера по ID
+	usr, err := u.UserRepo.GetByID(ctx, input.ID) // Получили юзера по ID
 	if err != nil {
-		return dto.UserOutput{}, fmt.Errorf("u.userRepo.GetByID: %w", err)
+		return dto.UserOutput{}, errorswrapper.WrapRepoErr("u.userRepo.GetByID", err)
 	}
 
 	prs, err := person.NewPerson(input.FirstName, input.Surname, input.LastName) // Создали новую персоналию
@@ -77,19 +77,19 @@ func (u *UserService) UpdateUserInfo(ctx context.Context, input dto.UserInput) (
 		return dto.UserOutput{}, fmt.Errorf("new person: %w", err)
 	}
 
-	err = user.UpdateUser(*prs)
+	err = usr.UpdateUser(*prs)
 	if err != nil {
 		return dto.UserOutput{}, fmt.Errorf("update user: %w", err)
 	} // Обновили информацию о персоналии
 
-	_, err = u.UserRepo.UpdateUser(ctx, user) // Обновили инфу в БД
+	_, err = u.UserRepo.UpdateUser(ctx, usr) // Обновили инфу в БД
 	if err != nil {
-		return dto.UserOutput{}, fmt.Errorf("u.userRepo.UpdateUser: %w", err)
+		return dto.UserOutput{}, errorswrapper.WrapRepoErr("u.userRepo.UpdateUser",err)
 	}
 
-	addrs, err := u.AddressRepo.GetByID(ctx, user.AddressID) // Получили адрес по айдишнику
+	addrs, err := u.AddressRepo.GetByID(ctx, usr.AddressID) // Получили адрес по айдишнику
 	if err != nil {
-		return dto.UserOutput{}, fmt.Errorf("u.addressRepo.GetByID: %w", err)
+		return dto.UserOutput{}, errorswrapper.WrapRepoErr("u.addressRepo.GetByID",err)
 	}
 
 	err = addrs.UpdateAddress(input.Street, input.HouseNumber, input.Entrance, input.FloorNumber, input.ApartmentNumber) // Обновили адрес
@@ -99,11 +99,11 @@ func (u *UserService) UpdateUserInfo(ctx context.Context, input dto.UserInput) (
 
 	_, err = u.AddressRepo.UpdateAddress(ctx, addrs) // Мб нет смысла возвращать адрес, тк он просто меняется в бд, id остается // Обновили инфу в БД
 	if err != nil {
-		return dto.UserOutput{}, fmt.Errorf("u.addressRepo.UpdateAddress: %w", err)
+		return dto.UserOutput{}, errorswrapper.WrapRepoErr("u.addressRepo.UpdateAddress", err)
 	}
 
 	return dto.UserOutput{
-		UserID: user.ID,
+		UserID: usr.ID,
 	}, nil
 }
 
@@ -115,10 +115,11 @@ func (u *UserService) CreateTask(ctx context.Context, input dto.TaskInput) (dto.
 
 	err = u.TaskRepo.AddTask(ctx, tsk) // Добавили задачу в БД
 	if err != nil {
-		return dto.TaskOutput{}, fmt.Errorf("u.taskRepo.AddTask : %w", err)
+		return dto.TaskOutput{}, errorswrapper.WrapRepoErr("u.taskRepo.AddTask", err)
 	}
 
 	return dto.TaskOutput{
 		TaskID: tsk.ID,
 	}, nil
 }
+

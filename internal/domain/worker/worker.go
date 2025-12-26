@@ -91,7 +91,7 @@ func (w *Worker) RemoveTask(taskID uuid.UUID) error {
 			return nil
 		}
 	}
-	return domainerrors.ErrTaskIsNotFound
+	return domainerrors.ErrTaskNotFound
 }
 
 func (w *Worker) Validate() error {

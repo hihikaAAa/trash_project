@@ -316,7 +316,7 @@ func TestWorker_RemoveTask_Error_TaskNotFound(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}
-	if !errors.Is(err, domainerrors.ErrTaskIsNotFound) {
+	if !errors.Is(err, domainerrors.ErrTaskNotFound) {
 		t.Fatalf("expected ErrTaskIsNotFound, got %v", err)
 	}
 }

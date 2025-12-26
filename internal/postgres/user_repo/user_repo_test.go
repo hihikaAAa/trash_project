@@ -39,7 +39,17 @@ func TestUserRepository_AddUser_Success(t *testing.T) {
 	ctx := context.Background()
 	p, _ := person.NewPerson("Ivan", "Ivanov", "Ivanovich")
 	u, _ := user.NewUser(p, uuid.New())
-
+	/*
+	mock.ExpectQuery(
+		regexp.QuoteMeta(`
+			SELECT 1 
+			FROM users 
+			WHERE first_name = $1 AND surname = $2 AND last_name = $3
+		`),
+	).
+		WithArgs(u.Person.FirstName, u.Person.Surname, u.Person.LastName).
+		WillReturnError(sql.ErrNoRows)
+	*/
 	mock.ExpectExec(
 		regexp.QuoteMeta(`
 			INSERT INTO users(user_id, first_name, surname, last_name, address_id)
