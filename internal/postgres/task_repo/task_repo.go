@@ -35,11 +35,11 @@ func (r *taskRepository) AddTask(ctx context.Context, task *task.Task) error {
 	const op = "internal.postgres.task_repo.AddTask"
 
 	const q = `
-	INSERT INTO tasks(task_id, client_id, address_id, worker_id, status)
-	VALUES ($1, $2, $3, $4, $5)
+	INSERT INTO tasks(task_id, client_id, address_id, status)
+	VALUES ($1, $2, $3, $4)
 	`
 
-	_, err := r.db.ExecContext(ctx, q, task.ID, task.ClientID, task.AddressID, task.WorkerID, task.Status)
+	_, err := r.db.ExecContext(ctx, q, task.ID, task.ClientID, task.AddressID, task.Status)
 	if err != nil {
 		return fmt.Errorf("%s, ExecContext: %w", op, err)
 	}

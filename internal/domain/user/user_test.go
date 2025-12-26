@@ -57,9 +57,8 @@ func TestUpdateUser_Success(t *testing.T) {
 		Surname:   "Petrov",
 		LastName:  "Petrovich",
 	}
-	newAddressID := uuid.New()
 
-	err = user.UpdateUser(newPerson, newAddressID)
+	err = user.UpdateUser(newPerson)
 	if err != nil {
 		t.Fatalf("expected nil, got %v", err)
 	}
@@ -76,10 +75,6 @@ func TestUpdateUser_Success(t *testing.T) {
 	}
 	if user.Person.LastName != "Petrovich" {
 		t.Fatalf("expected LastName = Petrovich, got %s", user.Person.LastName)
-	}
-
-	if user.AddressID != newAddressID {
-		t.Fatalf("expected AddressID = %s, got %s", newAddressID, user.AddressID)
 	}
 }
 
@@ -102,9 +97,8 @@ func TestUpdateUser_Error_InvalidPerson_StateNotChanged(t *testing.T) {
 		Surname:   "Petrov",
 		LastName:  "Petrovich",
 	}
-	newAddressID := uuid.New()
 
-	err = user.UpdateUser(invalidPerson, newAddressID)
+	err = user.UpdateUser(invalidPerson)
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}

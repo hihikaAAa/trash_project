@@ -36,19 +36,17 @@ func NewUser(person *person.Person, addressID uuid.UUID) (*User, error){
 	return &u, nil
 }
 
-func (u *User) UpdateUser(person person.Person, addressID uuid.UUID) error{
+func (u *User) UpdateUser(person person.Person) error{
 	next := User{
 		ID: u.ID,
 		Person: &person,
-		AddressID: addressID,
+		AddressID: u.AddressID,
 	}
 
 	if err := next.Validate(); err != nil{
 		return fmt.Errorf("validate: %w", err)
 	}
-
 	u.Person = next.Person
-	u.AddressID = next.AddressID
 	return nil
 }
 

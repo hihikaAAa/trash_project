@@ -36,12 +36,11 @@ func TestTaskRepository_AddTask_Success(t *testing.T) {
 		ID:        uuid.New(),
 		ClientID:  uuid.New(),
 		AddressID: uuid.New(),
-		WorkerID:  nil,
 		Status:    task.StatusOpen,
 	}
 
 	mock.ExpectExec("INSERT INTO tasks").
-		WithArgs(tsk.ID, tsk.ClientID, tsk.AddressID, tsk.WorkerID, tsk.Status).
+		WithArgs(tsk.ID, tsk.ClientID, tsk.AddressID, tsk.Status).
 		WillReturnResult(sqlmock.NewResult(0, 1))
 
 	if err := repo.AddTask(ctx, tsk); err != nil {
