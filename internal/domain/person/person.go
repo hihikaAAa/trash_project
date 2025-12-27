@@ -13,13 +13,15 @@ type Person struct {
 	FirstName string `json:"first_name" validate:"required,min=1,max=30"`
 	Surname   string `json:"surname" validate:"required,min=1,max=30"`
 	LastName  string `json:"last_name,omitempty" validate:"min=0,max=30"`
+	Role string `json:"role" validate:"required"`
 }
 
-func NewPerson(name, surname, lastName string) (*Person, error) {
+func NewPerson(name, surname, lastName, role string) (*Person, error) {
 	p := Person{
 		FirstName: name,
 		Surname:   surname,
 		LastName:  lastName,
+		Role : role,
 	}
 
 	if err := p.Validate(); err != nil {

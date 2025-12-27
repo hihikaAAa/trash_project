@@ -5,7 +5,7 @@ import (
 )
 
 func TestCreatePerson_Success(t *testing.T) {
-	p, err := NewPerson("Ivan", "Ivanov", "Ivanovich")
+	p, err := NewPerson("Ivan", "Ivanov", "Ivanovich", "worker")
 
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
@@ -27,7 +27,7 @@ func TestCreatePerson_Success(t *testing.T) {
 }
 
 func TestCreatePerson_Success_EmptyLastName(t *testing.T) {
-	p, err := NewPerson("Ivan", "Ivanov", "")
+	p, err := NewPerson("Ivan", "Ivanov", "","user")
 
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
@@ -49,22 +49,22 @@ func TestCreatePerson_Success_EmptyLastName(t *testing.T) {
 }
 
 func TestCreatePerson_Error_BadName(t *testing.T) {
-	_, err := NewPerson("", "Ivanov", "Ivanovich")
+	_, err := NewPerson("", "Ivanov", "Ivanovich", "user")
 	if err == nil {
 		t.Fatal("expected an error, got nil")
 	}
-	_, err = NewPerson("badnamebadnamebadnamebadnamebadname", "Ivanov", "Ivanovich")
+	_, err = NewPerson("badnamebadnamebadnamebadnamebadname", "Ivanov", "Ivanovich", "user")
 	if err == nil {
 		t.Fatal("expected an error, got nil")
 	}
 }
 
 func TestCreatePerson_Error_EmptySurname(t *testing.T) {
-	_, err := NewPerson("Ivan", "", "Ivanovich")
+	_, err := NewPerson("Ivan", "", "Ivanovich", "user")
 	if err == nil {
 		t.Fatal("expected an error, got nil")
 	}
-	_, err = NewPerson("Ivan", "badfamqbadfamqbadfamqbadfamqbadfamq", "Ivanovich")
+	_, err = NewPerson("Ivan", "badfamqbadfamqbadfamqbadfamqbadfamq", "Ivanovich", "user")
 	if err == nil {
 		t.Fatal("expected an error, got nil")
 	}

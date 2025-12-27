@@ -18,7 +18,7 @@ type TaskRepository interface {
 	ListActiveByWorkerID(ctx context.Context, workerID uuid.UUID) ([]*task.Task, error)
 	ListDoneByWorkerID(ctx context.Context, workerID uuid.UUID) ([]*task.Task, error)
 	DeleteTask(ctx context.Context, id uuid.UUID) error
-	UpdateStatus(ctx context.Context, id uuid.UUID, status task.Status) (*task.Task, error)
+	UpdateStatus(ctx context.Context, tsk *task.Task) (*task.Task, error)
 	HasOpenTaskForClient(ctx context.Context, clientID uuid.UUID) (bool, error)
 	AssignWorker(ctx context.Context, taskID uuid.UUID, workerID uuid.UUID) (*task.Task, error)
 	ListOpenTasks(ctx context.Context) ([]*task.Task, error)
@@ -187,18 +187,18 @@ func (r *taskRepository) DeleteTask(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
-func (r *taskRepository) UpdateStatus(ctx context.Context, id uuid.UUID, status task.Status) (*task.Task, error) {
+func (r *taskRepository) UpdateStatus(ctx context.Context, tsk *task.Task) (*task.Task, error) {
 	const op = "internal.postgres.task_repo.UpdateStatus"
 
 	const q = `
 	UPDATE tasks
-	SET status = $2, updated_at = now()
+	SET status = $2,closed_at = $3 updated_at = now()
 	WHERE task_id = $1
 	RETURNING task_id, client_id, address_id, worker_id, status
 	`
 
 	task := &task.Task{}
-	err := r.db.QueryRowContext(ctx, q, id, status).Scan(
+	err := r.db.QueryRowContext(ctx, q, tsk.ID, tsk.Status, tsk.ClosedAt).Scan(
 		&task.ID, &task.ClientID, &task.AddressID, &task.WorkerID, &task.Status,
 	)
 	if err == sql.ErrNoRows {

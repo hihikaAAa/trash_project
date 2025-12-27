@@ -12,7 +12,7 @@ import (
 func TestCreateTask_Success(t *testing.T) {
 	clientID, addressID, now := GenerateParams()
 
-	task, err := NewTask(clientID, addressID, now)
+	task, err := NewTask(clientID, addressID, now, "user")
 
 	if err != nil {
 		t.Fatalf("expected nil, got %v", err)
@@ -51,7 +51,7 @@ func TestCreateTask_Error_EmptyRequiredParams(t *testing.T) {
 	addressID := uuid.New()
 	now := time.Now()
 
-	_, err := NewTask(clientID, addressID, now)
+	_, err := NewTask(clientID, addressID, now, "user")
 
 	if err == nil {
 		t.Fatal("expected error, got nil")
@@ -59,7 +59,7 @@ func TestCreateTask_Error_EmptyRequiredParams(t *testing.T) {
 
 	clientID = uuid.New()
 	addressID = uuid.Nil
-	_, err = NewTask(clientID, addressID, now)
+	_, err = NewTask(clientID, addressID, now, "user")
 
 	if err == nil {
 		t.Fatal("expected error, got nil")
@@ -69,9 +69,9 @@ func TestCreateTask_Error_EmptyRequiredParams(t *testing.T) {
 
 func TestTask_StartTask_Success(t *testing.T) {
 	clientID, addressID, now := GenerateParams()
-	task, _ := NewTask(clientID, addressID, now)
+	task, _ := NewTask(clientID, addressID, now, "user")
 
-	err := task.StartTask()
+	err := task.StartTask("worker")
 	if err != nil {
 		t.Fatalf("expected nil, got %v", err)
 	}
@@ -84,10 +84,10 @@ func TestTask_CompleteTask_Success(t *testing.T) {
 	complete := time.Date(2025, 1, 2, 3, 4, 5, 0, time.UTC)
 
 	clientID, addressID, now := GenerateParams()
-	task, _ := NewTask(clientID, addressID, now)
+	task, _ := NewTask(clientID, addressID, now, "user")
 	task.Status = StatusInProgress
 
-	err := task.CompleteTask(complete)
+	err := task.CompleteTask(complete, "worker")
 
 	if err != nil {
 		t.Fatalf("expected nil, got %v", err)
@@ -108,9 +108,9 @@ func TestTask_CompleteTask_Error_NotInProgress(t *testing.T) {
 	complete := time.Date(2025, 1, 2, 3, 4, 5, 0, time.UTC)
 
 	clientID, addressID, now := GenerateParams()
-	task, _ := NewTask(clientID, addressID, now)
+	task, _ := NewTask(clientID, addressID, now, "user")
 
-	err := task.CompleteTask(complete)
+	err := task.CompleteTask(complete, "worker")
 
 	if err == nil {
 		t.Fatal("expected error, got nil")
@@ -124,9 +124,9 @@ func TestTask_CancelTask_Success(t *testing.T) {
 	cancel := time.Date(2025, 6, 7, 8, 9, 10, 0, time.UTC)
 
 	clientID, addressID, now := GenerateParams()
-	task, _ := NewTask(clientID, addressID, now)
+	task, _ := NewTask(clientID, addressID, now, "user")
 
-	err := task.CancelTask(cancel)
+	err := task.CancelTask(cancel, "user")
 
 	if err != nil {
 		t.Fatalf("expected nil, got %v", err)
@@ -144,10 +144,10 @@ func TestTask_CancelTask_Success(t *testing.T) {
 
 func TestTask_DropTask_Success(t *testing.T) {
 	clientID, addressID, now := GenerateParams()
-	task, _ := NewTask(clientID, addressID, now)
+	task, _ := NewTask(clientID, addressID, now, "user")
 	task.Status = StatusInProgress
 
-	err := task.DropTask()
+	err := task.DropTask("worker")
 
 	if err != nil {
 		t.Fatalf("expected nil, got %v", err)
@@ -159,9 +159,9 @@ func TestTask_DropTask_Success(t *testing.T) {
 
 func TestTask_DropTask_Error_NotInProgress(t *testing.T) {
 	clientID, addressID, now := GenerateParams()
-	task, _ := NewTask(clientID, addressID, now)
+	task, _ := NewTask(clientID, addressID, now, "user")
 
-	err := task.DropTask()
+	err := task.DropTask("worker")
 
 	if err == nil {
 		t.Fatal("expected error, got nil")
@@ -173,10 +173,10 @@ func TestTask_DropTask_Error_NotInProgress(t *testing.T) {
 
 func TestTask_StartTask_Error_TaskDone(t *testing.T) {
 	clientID, addressID, now := GenerateParams()
-	task, _ := NewTask(clientID, addressID, now)
+	task, _ := NewTask(clientID, addressID, now, "user")
 	task.Status = StatusDone
 
-	err := task.StartTask()
+	err := task.StartTask("user")
 
 	if err == nil {
 		t.Fatal("expected error, got nil")
@@ -190,10 +190,10 @@ func TestTask_CancelTask_Error_TaskDone(t *testing.T) {
 	cancel := time.Date(2025, 6, 7, 8, 9, 10, 0, time.UTC)
 
 	clientID, addressID, now := GenerateParams()
-	task, _ := NewTask(clientID, addressID, now)
+	task, _ := NewTask(clientID, addressID, now, "user")
 	task.Status = StatusDone
 
-	err := task.CancelTask(cancel)
+	err := task.CancelTask(cancel, "user")
 
 	if err == nil {
 		t.Fatal("expected error, got nil")
@@ -207,10 +207,10 @@ func TestTask_CompleteTask_Error_TaskCanceled(t *testing.T) {
 	complete := time.Date(2025, 1, 2, 3, 4, 5, 0, time.UTC)
 
 	clientID, addressID, now := GenerateParams()
-	task, _ := NewTask(clientID, addressID, now)
+	task, _ := NewTask(clientID, addressID, now, "user")
 	task.Status = StatusCanceled
 
-	err := task.CompleteTask(complete)
+	err := task.CompleteTask(complete, "worker")
 
 	if err == nil {
 		t.Fatal("expected error, got nil")
@@ -222,10 +222,10 @@ func TestTask_CompleteTask_Error_TaskCanceled(t *testing.T) {
 
 func TestTask_DropTask_Error_TaskCanceled(t *testing.T) {
 	clientID, addressID, now := GenerateParams()
-	task, _ := NewTask(clientID, addressID, now)
+	task, _ := NewTask(clientID, addressID, now, "user")
 	task.Status = StatusCanceled
 
-	err := task.DropTask()
+	err := task.DropTask("worker")
 
 	if err == nil {
 		t.Fatal("expected error, got nil")
@@ -237,10 +237,10 @@ func TestTask_DropTask_Error_TaskCanceled(t *testing.T) {
 
 func TestTask_StartTask_Error_TaskCanceled(t *testing.T) {
 	clientID, addressID, now := GenerateParams()
-	task, _ := NewTask(clientID, addressID, now)
+	task, _ := NewTask(clientID, addressID, now, "user")
 	task.Status = StatusCanceled
 
-	err := task.StartTask()
+	err := task.StartTask("user")
 
 	if err == nil {
 		t.Fatal("expected error, got nil")
@@ -252,15 +252,26 @@ func TestTask_StartTask_Error_TaskCanceled(t *testing.T) {
 
 func TestTask_StartTask_Error_TaskNotOpen(t *testing.T) {
 	clientID, addressID, now := GenerateParams()
-	task, _ := NewTask(clientID, addressID, now)
+	task, _ := NewTask(clientID, addressID, now, "user")
 	task.Status = StatusInProgress
 
-	err := task.StartTask()
+	err := task.StartTask("user")
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}
 	if !errors.Is(err, domainerrors.ErrTaskIsNotOpen) {
 		t.Fatalf("expected ErrTaskIsNotOpen, got %v", err)
+	}
+}
+
+func TestTask_CreateTask_Error_PersonIsWorker(t *testing.T){
+	clientID, addressID, now := GenerateParams()
+	_, err := NewTask(clientID,addressID,now,"worker")
+	if err == nil{
+		t.Fatal("expected error, got nil")
+	}
+	if !errors.Is(err,domainerrors.ErrWrongRole){
+		t.Fatalf("expected ErrWrongRole, got %v", err)
 	}
 }
 

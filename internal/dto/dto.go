@@ -7,29 +7,27 @@ import (
 	"github.com/google/uuid"
 )
 
-type UserInput struct {
-	ID              uuid.UUID `json:"id,omitempty"`
-	FirstName       string    `json:"first_name"`
-	Surname         string    `json:"surname"`
-	LastName        string    `json:"last_name"`
-	Street          string    `json:"street"`
-	HouseNumber     string    `json:"house_number"`
-	Entrance        string    `json:"entrance"`
-	FloorNumber     int       `json:"floor_number"`
-	ApartmentNumber int       `json:"apartment_number"`
-	Email           string    `json:"email"`
+type ProfileInput struct {
+	ID        uuid.UUID `json:"id,omitempty"`
+	Role      string    `json:"role"`
+	FirstName string    `json:"first_name"`
+	Surname   string    `json:"surname"`
+	LastName  string    `json:"last_name,omitempty"`
 }
 
-type UserOutput struct {
-	UserID uuid.UUID `json:"user_id"`
+type ProfileOutput struct {
+	ID   uuid.UUID `json:"id"`
+	Role string    `json:"role"`
 }
 
 type TaskInput struct {
-	ClientID  uuid.UUID
-	AddressID uuid.UUID
-	Time      time.Time
+	ID uuid.UUID `json:"id,omitempty"`
+	ClientID  uuid.UUID `json:"client_id"`
+	AddressID uuid.UUID `json:"address_id"`
+	Time      time.Time `json:"time"`
+	Role      string    `json:"role"`
 }
 
 type TaskOutput struct {
-	TaskID uuid.UUID
+	TaskID uuid.UUID `json:"task_id"`
 }

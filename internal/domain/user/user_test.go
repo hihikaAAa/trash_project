@@ -8,10 +8,9 @@ import (
 )
 
 func TestCreateUser_Success(t *testing.T) {
-	person, _ := person.NewPerson("Ivan", "Ivanov", "Ivanovich")
 	addressID := uuid.New()
 
-	user, err := NewUser(person, addressID)
+	user, err := NewUser("Ivan", "Ivanov", "Ivanovich", addressID)
 
 	if err != nil {
 		t.Fatalf("expected nil, got %v", err)
@@ -44,10 +43,9 @@ func TestCreateUser_Success(t *testing.T) {
 }
 
 func TestUpdateUser_Success(t *testing.T) {
-	p, _ := person.NewPerson("Ivan", "Ivanov", "Ivanovich")
 	addressID := uuid.New()
 
-	user, err := NewUser(p, addressID)
+	user, err := NewUser("Ivan", "Ivanov", "Ivanovich", addressID)
 	if err != nil {
 		t.Fatalf("expected nil, got %v", err)
 	}
@@ -56,6 +54,7 @@ func TestUpdateUser_Success(t *testing.T) {
 		FirstName: "Petr",
 		Surname:   "Petrov",
 		LastName:  "Petrovich",
+		Role: "user",
 	}
 
 	err = user.UpdateUser(newPerson)
@@ -79,10 +78,9 @@ func TestUpdateUser_Success(t *testing.T) {
 }
 
 func TestUpdateUser_Error_InvalidPerson_StateNotChanged(t *testing.T) {
-	p, _ := person.NewPerson("Ivan", "Ivanov", "Ivanovich")
 	addressID := uuid.New()
 
-	user, err := NewUser(p, addressID)
+	user, err := NewUser("Ivan", "Ivanov", "Ivanovich", addressID)
 	if err != nil {
 		t.Fatalf("expected nil, got %v", err)
 	}
@@ -122,10 +120,9 @@ func TestUpdateUser_Error_InvalidPerson_StateNotChanged(t *testing.T) {
 }
 
 func TestCreateUser_Error_NilPerson(t *testing.T) {
-	person := (*person.Person)(nil)
 	addressID := uuid.New()
 
-	_, err := NewUser(person, addressID)
+	_, err := NewUser("","","", addressID)
 
 	if err == nil {
 		t.Fatal("expected error, got nil")
@@ -133,10 +130,9 @@ func TestCreateUser_Error_NilPerson(t *testing.T) {
 }
 
 func TestCreateUser_Error_EmptyAddressID(t *testing.T) {
-	person, _ := person.NewPerson("Ivan", "Ivanov", "Ivanovich")
 	addressID := uuid.Nil
 
-	_, err := NewUser(person, addressID)
+	_, err := NewUser("Ivan", "Ivanov", "Ivanovich", addressID)
 
 	if err == nil {
 		t.Fatal("expected error, got nil")

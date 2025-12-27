@@ -24,4 +24,6 @@ var(
 
 	ErrAddressNotFound = errors.New("address not found")
 	ErrAddressExists = errors.New("address exists")
+
+	ErrWrongRole = errors.New("wrong role")
 )

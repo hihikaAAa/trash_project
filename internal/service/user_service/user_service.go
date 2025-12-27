@@ -1,6 +1,8 @@
+
+
 // Package userservice
 package userservice
-
+/*
 import (
 	"context"
 	"database/sql"
@@ -106,20 +108,4 @@ func (u *UserService) UpdateUserInfo(ctx context.Context, input dto.UserInput) (
 		UserID: usr.ID,
 	}, nil
 }
-
-func (u *UserService) CreateTask(ctx context.Context, input dto.TaskInput) (dto.TaskOutput, error) {
-	tsk, err := task.NewTask(input.ClientID, input.AddressID, input.Time) // Создали задачу
-	if err != nil {
-		return dto.TaskOutput{}, fmt.Errorf("new task: %w", err)
-	}
-
-	err = u.TaskRepo.AddTask(ctx, tsk) // Добавили задачу в БД
-	if err != nil {
-		return dto.TaskOutput{}, errorswrapper.WrapRepoErr("u.taskRepo.AddTask", err)
-	}
-
-	return dto.TaskOutput{
-		TaskID: tsk.ID,
-	}, nil
-}
-
+*/

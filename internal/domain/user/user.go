@@ -12,6 +12,8 @@ import (
 
 var validate = validator.New()
 
+const UserRole = "user"
+
 type User struct {
 	ID        uuid.UUID     `json:"id"`
 	Person    *person.Person `json:"person" validate:"required"`
@@ -21,12 +23,17 @@ type User struct {
 	// Телефон/email для логина
 }
 
-func NewUser(person *person.Person, addressID uuid.UUID) (*User, error){
+func NewUser(name,surname, lastName string, addressID uuid.UUID) (*User, error){
 	id := uuid.New()
+
+	p, err := person.NewPerson(name, surname, lastName, UserRole)
+	if err != nil {
+		return nil, err
+	}
 
 	u := User{
 		ID: id,
-		Person: person,
+		Person: p,
 		AddressID: addressID,
 	}
 

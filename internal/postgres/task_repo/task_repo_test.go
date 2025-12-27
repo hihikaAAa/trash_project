@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/google/uuid"
@@ -220,21 +221,43 @@ func TestTaskRepository_UpdateStatus(t *testing.T) {
 	defer cleanup()
 
 	ctx := context.Background()
-	id := uuid.New()
+	complete := time.Date(2025, 1, 2, 3, 4, 5, 0, time.UTC)
+
+	clientID := uuid.New()
+	addressID := uuid.New()
+	workerID := uuid.New()
+
+	tsk, err := task.NewTask(uuid.New(), clientID, time.Now(), "user")
+	if err != nil {
+		t.Fatalf("NewTask error: %v", err)
+	}
+
+
+	err = tsk.StartTask("worker") 
+	if err != nil {
+		t.Fatalf("StartTask error: %v", err)
+	}
+
+	err = tsk.CompleteTask(complete, "worker")
+	if err != nil {
+		t.Fatalf("CompleteTask error: %v", err)
+	}
 
 	rows := sqlmock.NewRows([]string{
 		"task_id", "client_id", "address_id", "worker_id", "status",
-	}).AddRow(id, uuid.New(), uuid.New(), uuid.New(), task.StatusDone)
-
+	}).AddRow(tsk.ID, clientID, addressID, workerID, task.StatusDone)
 	mock.ExpectQuery("UPDATE tasks").
-		WithArgs(id, task.StatusDone).
+		WithArgs(tsk.ID, task.StatusDone, complete).
 		WillReturnRows(rows)
-
-	_, err := repo.UpdateStatus(ctx, id, task.StatusDone)
+	_, err = repo.UpdateStatus(ctx, tsk)
 	if err != nil {
 		t.Fatalf("UpdateStatus error: %v", err)
 	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("mock expectations were not met: %v", err)
+	}
 }
+
 
 func TestTaskRepository_AssignWorker(t *testing.T) {
 	repo, mock, cleanup := newTestTaskRepo(t)

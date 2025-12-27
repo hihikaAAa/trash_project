@@ -15,11 +15,15 @@ var validate = validator.New()
 
 type Status string
 
+type Role string
+
 const (
 	StatusOpen       Status = "OPEN"
 	StatusInProgress Status = "IN_PROGRESS"
 	StatusDone       Status = "DONE"
 	StatusCanceled   Status = "CANCELED"
+	WorkerRole Role = "worker"
+	UserRole Role = "user"
 )
 
 type Task struct {
@@ -32,9 +36,13 @@ type Task struct {
 	ClosedAt  *time.Time `json:"closed_at"`
 }
 
-func NewTask(clientID, addressID uuid.UUID, now time.Time) (*Task, error) {
+func NewTask(clientID, addressID uuid.UUID, now time.Time, role Role) (*Task, error) {
 	id := uuid.New()
 
+	if !CheckRole(role){
+		return nil, domainerrors.ErrWrongRole
+	}
+	
 	t := Task{
 		ID:        id,
 		ClientID:  clientID,
@@ -49,6 +57,10 @@ func NewTask(clientID, addressID uuid.UUID, now time.Time) (*Task, error) {
 	return &t, nil
 }
 
+func CheckRole(role Role) bool{
+	return role == UserRole
+}
+
 func (t *Task) CheckPossibleStatus() error {
 	if t.Status == StatusCanceled {
 		return domainerrors.ErrTaskCanceled
@@ -59,44 +71,56 @@ func (t *Task) CheckPossibleStatus() error {
 	return nil
 }
 
-func (t *Task) StartTask() error {
+func (t *Task) StartTask(role Role) error {
 	if err := t.CheckPossibleStatus(); err != nil {
 		return err
 	}
 	if t.Status != StatusOpen{
 		return domainerrors.ErrTaskIsNotOpen
 	}
+	if CheckRole(role){
+		return domainerrors.ErrWrongRole
+	}
 	t.Status = StatusInProgress
 	return nil
 }
 
-func (t *Task) CompleteTask(now time.Time) error {
+func (t *Task) CompleteTask(now time.Time, role Role) error {
 	if err := t.CheckPossibleStatus(); err != nil {
 		return err
 	}
 	if t.Status != StatusInProgress{
 		return domainerrors.ErrTaskNotInProgress
+	}
+	if CheckRole(role){
+		return domainerrors.ErrWrongRole
 	}
 	t.Status = StatusDone
 	t.ClosedAt = &now
 	return nil
 }
 
-func (t *Task) CancelTask(now time.Time) error {
+func (t *Task) CancelTask(now time.Time, role Role) error {
 	if err := t.CheckPossibleStatus(); err != nil {
 		return err
+	}
+	if !CheckRole(role){
+		return domainerrors.ErrWrongRole
 	}
 	t.Status = StatusCanceled
 	t.ClosedAt = &now
 	return nil
 }
 
-func (t *Task) DropTask() error {
+func (t *Task) DropTask(role Role) error {
 	if err := t.CheckPossibleStatus(); err != nil {
 		return err
 	}
 	if t.Status != StatusInProgress{
 		return domainerrors.ErrTaskNotInProgress
+	}
+	if CheckRole(role){
+		return domainerrors.ErrWrongRole
 	}
 	t.Status = StatusOpen
 	return nil

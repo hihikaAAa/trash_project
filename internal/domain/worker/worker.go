@@ -13,6 +13,7 @@ import (
 
 var validate = validator.New()
 
+const WorkerRole = "worker"
 type Worker struct {
 	ID       uuid.UUID      `json:"id"`
 	Person   *person.Person `json:"person" validate:"required"`
@@ -21,10 +22,10 @@ type Worker struct {
 	// TODO : Добавить район для работы
 }
 
-func NewWorker(name, surname, lastName string) (*Worker, error) {
+func NewWorker(name,surname,lastName string) (*Worker, error) {
 	id := uuid.New()
 
-	p, err := person.NewPerson(name, surname, lastName)
+	p, err := person.NewPerson(name, surname, lastName, WorkerRole)
 	if err != nil {
 		return nil, err
 	}
