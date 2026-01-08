@@ -2,16 +2,11 @@
 package task
 
 import (
-	"fmt"
 	"time"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
-
 	domainerrors "github.com/hihikaAAa/TrashProject/internal/domain/domain_errors"
 )
-
-var validate = validator.New()
 
 type Status string
 
@@ -22,14 +17,14 @@ const (
 	StatusInProgress Status = "IN_PROGRESS"
 	StatusDone       Status = "DONE"
 	StatusCanceled   Status = "CANCELED"
-	WorkerRole Role = "worker"
-	UserRole Role = "user"
+	WorkerRole Role = "WORKER"
+	UserRole Role = "USER"
 )
 
 type Task struct {
-	ID        uuid.UUID  `json:"id" validate:"required"`
-	ClientID  uuid.UUID  `json:"client_id" validate:"required"`
-	AddressID uuid.UUID  `json:"address_id" validate:"required"`
+	ID        uuid.UUID  `json:"id"`
+	ClientID  uuid.UUID  `json:"client_id"`
+	AddressID uuid.UUID  `json:"address_id"`
 	Status    Status     `json:"status"`
 	WorkerID  *uuid.UUID `json:"worker_id"`
 	CreatedAt time.Time  `json:"created_at"`
@@ -39,10 +34,14 @@ type Task struct {
 func NewTask(clientID, addressID uuid.UUID, now time.Time, role Role) (*Task, error) {
 	id := uuid.New()
 
-	if !CheckRole(role){
+	if !isUser(role){
 		return nil, domainerrors.ErrWrongRole
 	}
 	
+	if err := validateTaskInfo(clientID,addressID,now); err != nil{
+		return nil, err
+	}
+
 	t := Task{
 		ID:        id,
 		ClientID:  clientID,
@@ -51,81 +50,147 @@ func NewTask(clientID, addressID uuid.UUID, now time.Time, role Role) (*Task, er
 		CreatedAt: now,
 	}
 
-	if err := t.Validate(); err != nil {
-		return nil, fmt.Errorf("validate: %w", err)
-	}
 	return &t, nil
 }
 
-func CheckRole(role Role) bool{
-	return role == UserRole
+func isUser(role Role) bool   { 
+	return role == UserRole 
 }
 
-func (t *Task) CheckPossibleStatus() error {
-	if t.Status == StatusCanceled {
-		return domainerrors.ErrTaskCanceled
-	}
-	if t.Status == StatusDone {
-		return domainerrors.ErrTaskDone
-	}
-	return nil
+func isWorker(role Role) bool { 
+	return role == WorkerRole 
 }
 
 func (t *Task) StartTask(role Role) error {
-	if err := t.CheckPossibleStatus(); err != nil {
+	if err := validateTaskStatus(t.Status); err != nil {
 		return err
 	}
-	if t.Status != StatusOpen{
+	if err := t.checkNotFinal(); err != nil {
+		return err
+	}
+	if !isWorker(role) {
+		return domainerrors.ErrWrongRole
+	}
+	if t.Status != StatusOpen {
 		return domainerrors.ErrTaskIsNotOpen
 	}
-	if CheckRole(role){
-		return domainerrors.ErrWrongRole
+
+	if t.WorkerID != nil{
+		return domainerrors.ErrBadTaskWorker
 	}
 	t.Status = StatusInProgress
 	return nil
 }
 
+
 func (t *Task) CompleteTask(now time.Time, role Role) error {
-	if err := t.CheckPossibleStatus(); err != nil {
+	if err := validateTaskStatus(t.Status); err != nil {
 		return err
 	}
-	if t.Status != StatusInProgress{
+	if err := t.checkNotFinal(); err != nil {
+		return err
+	}
+	if !isWorker(role) {
+		return domainerrors.ErrWrongRole
+	}
+	if t.Status != StatusInProgress {
 		return domainerrors.ErrTaskNotInProgress
 	}
-	if CheckRole(role){
-		return domainerrors.ErrWrongRole
+	if now.IsZero() {
+		return domainerrors.ErrBadTaskTime
+	}
+	if t.WorkerID == nil{
+		return domainerrors.ErrBadTaskWorker
 	}
 	t.Status = StatusDone
 	t.ClosedAt = &now
 	return nil
 }
 
+
 func (t *Task) CancelTask(now time.Time, role Role) error {
-	if err := t.CheckPossibleStatus(); err != nil {
+	if err := validateTaskStatus(t.Status); err != nil {
 		return err
 	}
-	if !CheckRole(role){
+	if err := t.checkNotFinal(); err != nil {
+		return err
+	}
+	if !isUser(role) {
 		return domainerrors.ErrWrongRole
 	}
+	if now.IsZero() {
+		return domainerrors.ErrBadTaskTime
+	}
+	
 	t.Status = StatusCanceled
 	t.ClosedAt = &now
 	return nil
 }
 
+
 func (t *Task) DropTask(role Role) error {
-	if err := t.CheckPossibleStatus(); err != nil {
+	if err := validateTaskStatus(t.Status); err != nil {
 		return err
 	}
-	if t.Status != StatusInProgress{
-		return domainerrors.ErrTaskNotInProgress
+	if err := t.checkNotFinal(); err != nil {
+		return err
 	}
-	if CheckRole(role){
+	if !isWorker(role) {
 		return domainerrors.ErrWrongRole
 	}
+	
+	if t.Status != StatusInProgress {
+		return domainerrors.ErrTaskNotInProgress
+	}
+
+	t.WorkerID = nil
 	t.Status = StatusOpen
 	return nil
 }
 
-func (t *Task) Validate() error {
-	return validate.Struct(t)
+func (t *Task) checkNotFinal() error {
+	switch t.Status {
+	case StatusCanceled:
+		return domainerrors.ErrTaskCanceled
+	case StatusDone:
+		return domainerrors.ErrTaskDone
+	default:
+		return nil
+	}
+}
+
+func (t *Task) AssignWorker(workerID uuid.UUID) error{
+	if workerID == uuid.Nil{
+		return domainerrors.ErrBadTaskWorker
+	}
+	
+	if t.WorkerID != nil{
+		return domainerrors.ErrBadTaskWorker
+	}
+
+	if t.Status != StatusOpen{
+		return domainerrors.ErrBadTaskStatus
+	}
+	t.WorkerID = &workerID
+	return nil
+}
+
+func validateTaskInfo(clientID, addressID uuid.UUID, now time.Time) error{
+	if clientID == uuid.Nil || addressID == uuid.Nil{
+		return domainerrors.ErrBadTaskInfo
+	}
+
+	if now.IsZero(){
+		return domainerrors.ErrBadTaskTime
+	}
+	return nil
+}
+
+func validateTaskStatus(status Status) error {
+	switch status {
+	case StatusOpen, StatusInProgress, StatusDone, StatusCanceled:
+		return nil
+	default:
+		return domainerrors.ErrBadTaskStatus
+	}
 }

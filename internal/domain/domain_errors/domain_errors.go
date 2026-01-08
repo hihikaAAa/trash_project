@@ -11,6 +11,10 @@ var(
 	ErrTaskNotInProgress = errors.New("can complete only task, which is in progress")
 	ErrTaskIsNotOpen = errors.New("can start only task, which is open")
 	ErrTaskNotFound = errors.New("task is not found")
+	ErrBadTaskInfo = errors.New("bad task info")
+	ErrBadTaskTime = errors.New("bad task time")
+	ErrBadTaskStatus = errors.New("bad task status")
+	ErrBadTaskWorker = errors.New("bad task worker")
 
 	ErrWorkerNotFound = errors.New("worker not found")
 	ErrWorkerExists = errors.New("worker exists")
@@ -24,6 +28,15 @@ var(
 
 	ErrAddressNotFound = errors.New("address not found")
 	ErrAddressExists = errors.New("address exists")
+	ErrBadFloorNumber = errors.New("bad floor number")
+	ErrBadApartmentNumber = errors.New("bad apartment number")
+	ErrBadStreet = errors.New("bad street")
+	ErrBadHouseNumber = errors.New("bad house number")
+	ErrBadEntrance = errors.New("bad entrance")
+
+	ErrBadNamePart = errors.New("bad name")
+	ErrBadLastName = errors.New("bad last name")
 
 	ErrWrongRole = errors.New("wrong role")
+	ErrBadEmail = errors.New("bad email")
 )

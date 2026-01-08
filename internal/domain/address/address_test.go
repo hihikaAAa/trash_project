@@ -7,8 +7,8 @@ import (
 )
 
 func TestCreateAddress_Success(t *testing.T) {
-	street := "Lenina"
-	houseNumber := "10A"
+	street := "Ленина"
+	houseNumber := "10А"
 	entrance := "2"
 	floorNumber := 3
 	apartmentNumber := 15
@@ -45,7 +45,7 @@ func TestCreateAddress_Success(t *testing.T) {
 
 func TestCreateAddress_Error_EmptyRequiredParams(t *testing.T) {
 	street := ""
-	houseNumber := "10A"
+	houseNumber := "10А"
 	entrance := "2"
 	floorNumber := 3
 	apartmentNumber := 15
@@ -56,7 +56,7 @@ func TestCreateAddress_Error_EmptyRequiredParams(t *testing.T) {
 		t.Fatal("expected error, got nil")
 	}
 
-	street = "Lenina"
+	street = "Ленина"
 	houseNumber = ""
 	_, err = NewAddress(street, houseNumber, entrance, floorNumber, apartmentNumber)
 
@@ -66,8 +66,8 @@ func TestCreateAddress_Error_EmptyRequiredParams(t *testing.T) {
 }
 
 func TestCreateAddress_Error_NegativeNumbers(t *testing.T) {
-	street := "Lenina"
-	houseNumber := "10A"
+	street := "Ленина"
+	houseNumber := "10А"
 	entrance := "2"
 	floorNumber := -1
 	apartmentNumber := 15
@@ -88,8 +88,8 @@ func TestCreateAddress_Error_NegativeNumbers(t *testing.T) {
 }
 
 func TestUpdateAddress_Success(t *testing.T) {
-	street := "Lenina"
-	houseNumber := "10A"
+	street := "Ленина"
+	houseNumber := "10А"
 	entrance := "2"
 	floorNumber := 3
 	apartmentNumber := 15
@@ -101,10 +101,10 @@ func TestUpdateAddress_Success(t *testing.T) {
 
 	oldID := address.ID
 
-	newStreet := "Tverskaya"
+	newStreet := "Ленина"
 	newHouseNumber := "5"
 	newEntrance := "1"
-	newFloorNumber := 0
+	newFloorNumber := 1
 	newApartmentNumber := 1
 
 	err = address.UpdateAddress(newStreet, newHouseNumber, newEntrance, newFloorNumber, newApartmentNumber)
@@ -135,8 +135,8 @@ func TestUpdateAddress_Success(t *testing.T) {
 }
 
 func TestUpdateAddress_Error_InvalidParams_StateNotChanged(t *testing.T) {
-	street := "Lenina"
-	houseNumber := "10A"
+	street := "Ленина"
+	houseNumber := "10А"
 	entrance := "2"
 	floorNumber := 3
 	apartmentNumber := 15

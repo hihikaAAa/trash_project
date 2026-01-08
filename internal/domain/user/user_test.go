@@ -54,7 +54,6 @@ func TestUpdateUser_Success(t *testing.T) {
 		FirstName: "Petr",
 		Surname:   "Petrov",
 		LastName:  "Petrovich",
-		Role: "user",
 	}
 
 	err = user.UpdateUser(newPerson)

@@ -12,10 +12,9 @@ import (
 
 var validate = validator.New()
 
-const UserRole = "user"
-
 type User struct {
 	ID        uuid.UUID     `json:"id"`
+	AccountID uuid.UUID `json:"account_id"`
 	Person    *person.Person `json:"person" validate:"required"`
 	AddressID uuid.UUID     `json:"address_id" validate:"required"`
 
@@ -26,7 +25,7 @@ type User struct {
 func NewUser(name,surname, lastName string, addressID uuid.UUID) (*User, error){
 	id := uuid.New()
 
-	p, err := person.NewPerson(name, surname, lastName, UserRole)
+	p, err := person.NewPerson(name, surname, lastName)
 	if err != nil {
 		return nil, err
 	}

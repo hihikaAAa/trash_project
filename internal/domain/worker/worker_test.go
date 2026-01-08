@@ -69,7 +69,6 @@ func TestUpdateWorker_Success(t *testing.T) {
 		FirstName: "Petr",
 		Surname:   "Petrov",
 		LastName:  "Petrovich",
-		Role: "worker",
 	}
 
 	err = worker.UpdateWorker(newPerson)
@@ -110,7 +109,6 @@ func TestUpdateWorker_Error_InvalidPerson_StateNotChanged(t *testing.T) {
 		FirstName: "",
 		Surname:   "Petrov",
 		LastName:  "Petrovich",
-		Role: "worker",
 	}
 
 	err = worker.UpdateWorker(invalidPerson)
