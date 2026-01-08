@@ -192,7 +192,7 @@ func (r *taskRepository) UpdateStatus(ctx context.Context, tsk *task.Task) (*tas
 
 	const q = `
 	UPDATE tasks
-	SET status = $2,closed_at = $3 updated_at = now()
+	SET status = $2,closed_at = $3, updated_at = now()
 	WHERE task_id = $1
 	RETURNING task_id, client_id, address_id, worker_id, status
 	`
@@ -216,7 +216,7 @@ func (r *taskRepository) HasOpenTaskForClient(ctx context.Context, clientID uuid
 	const q = `
 	SELECT 1 
 	FROM tasks
-	WHERE client_id = $1 AND status IN ($2, $3)
+	WHERE client_id = $1 AND (status = $2 OR status = $3)
 	LIMIT 1
 	`
 
