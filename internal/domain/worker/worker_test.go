@@ -6,11 +6,11 @@ import (
 
 	"github.com/google/uuid"
 	domainerrors "github.com/hihikaAAa/TrashProject/internal/domain/domain_errors"
-	"github.com/hihikaAAa/TrashProject/internal/domain/person"
 )
 
 func TestCreateWorker_Success(t *testing.T) {
-	worker, err := NewWorker("Ivan", "Ivanov", "Ivanovich")
+	accountID := uuid.New()
+	worker, err := NewWorker("Иван", "Иванов", "Иванович", accountID)
 
 	if err != nil {
 		t.Fatalf("expected nil, got %v", err)
@@ -26,14 +26,14 @@ func TestCreateWorker_Success(t *testing.T) {
 		t.Fatal("expected Person not nil")
 	}
 
-	if worker.Person.FirstName != "Ivan" {
-		t.Fatalf("expected FirstName = Ivan, got %s", worker.Person.FirstName)
+	if worker.Person.FirstName != "Иван" {
+		t.Fatalf("expected FirstName = Иван, got %s", worker.Person.FirstName)
 	}
-	if worker.Person.Surname != "Ivanov" {
-		t.Fatalf("expected Surname = Ivanov, got %s", worker.Person.Surname)
+	if worker.Person.Surname != "Иванов" {
+		t.Fatalf("expected Surname = Иванов, got %s", worker.Person.Surname)
 	}
-	if worker.Person.LastName != "Ivanovich" {
-		t.Fatalf("expected LastName = Ivanovich, got %s", worker.Person.LastName)
+	if worker.Person.LastName != "Иванович" {
+		t.Fatalf("expected LastName = Иванович, got %s", worker.Person.LastName)
 	}
 
 	if worker.IsActive != false {
@@ -45,13 +45,14 @@ func TestCreateWorker_Success(t *testing.T) {
 }
 
 func TestCreateWorker_Error_EmptyRequiredParams(t *testing.T) {
-	_, err := NewWorker("", "Ivanov", "Ivanovich")
+	accountID := uuid.New()
+	_, err := NewWorker("", "Иванов", "Иванович", accountID)
 
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}
 
-	_, err = NewWorker("Ivan", "", "Ivanovich")
+	_, err = NewWorker("Иван", "", "Иванович", accountID)
 
 	if err == nil {
 		t.Fatal("expected error, got nil")
@@ -59,19 +60,15 @@ func TestCreateWorker_Error_EmptyRequiredParams(t *testing.T) {
 }
 
 func TestUpdateWorker_Success(t *testing.T) {
-	worker, err := NewWorker("Ivan", "Ivanov", "Ivanovich")
+	accountID := uuid.New()
+	worker, err := NewWorker("Иван", "Иванов", "Иванович", accountID)
 	if err != nil {
 		t.Fatalf("expected nil, got %v", err)
 	}
+
 	oldID := worker.ID
 
-	newPerson := person.Person{
-		FirstName: "Petr",
-		Surname:   "Petrov",
-		LastName:  "Petrovich",
-	}
-
-	err = worker.UpdateWorker(newPerson)
+	err = worker.UpdateWorker("Петр","Петров","Петрович")
 
 	if err != nil {
 		t.Fatalf("expected nil, got %v", err)
@@ -84,19 +81,20 @@ func TestUpdateWorker_Success(t *testing.T) {
 	if worker.Person == nil {
 		t.Fatal("expected Person not nil")
 	}
-	if worker.Person.FirstName != "Petr" {
-		t.Fatalf("expected FirstName = Petr, got %s", worker.Person.FirstName)
+	if worker.Person.FirstName != "Петр" {
+		t.Fatalf("expected FirstName = Петр, got %s", worker.Person.FirstName)
 	}
-	if worker.Person.Surname != "Petrov" {
-		t.Fatalf("expected Surname = Petrov, got %s", worker.Person.Surname)
+	if worker.Person.Surname != "Петров" {
+		t.Fatalf("expected Surname = Петров, got %s", worker.Person.Surname)
 	}
-	if worker.Person.LastName != "Petrovich" {
-		t.Fatalf("expected LastName = Petrovich, got %s", worker.Person.LastName)
+	if worker.Person.LastName != "Петрович" {
+		t.Fatalf("expected LastName = Петрович, got %s", worker.Person.LastName)
 	}
 }
 
 func TestUpdateWorker_Error_InvalidPerson_StateNotChanged(t *testing.T) {
-	worker, err := NewWorker("Ivan", "Ivanov", "Ivanovich")
+	accountID := uuid.New()
+	worker, err := NewWorker("Иван", "Иванов", "Иванович",accountID)
 	if err != nil {
 		t.Fatalf("expected nil, got %v", err)
 	}
@@ -105,13 +103,7 @@ func TestUpdateWorker_Error_InvalidPerson_StateNotChanged(t *testing.T) {
 	oldSurname := worker.Person.Surname
 	oldLastName := worker.Person.LastName
 
-	invalidPerson := person.Person{
-		FirstName: "",
-		Surname:   "Petrov",
-		LastName:  "Petrovich",
-	}
-
-	err = worker.UpdateWorker(invalidPerson)
+	err = worker.UpdateWorker("", "Петров","Петрович")
 
 	if err == nil {
 		t.Fatal("expected error, got nil")
@@ -132,7 +124,8 @@ func TestUpdateWorker_Error_InvalidPerson_StateNotChanged(t *testing.T) {
 }
 
 func TestWorker_Activate_Success(t *testing.T) {
-	worker, err := NewWorker("Ivan", "Ivanov", "Ivanovich")
+	accountID := uuid.New()
+	worker, err := NewWorker("Иван", "Иванов", "Иванович",accountID)
 	if err != nil {
 		t.Fatalf("expected nil, got %v", err)
 	}
@@ -152,7 +145,8 @@ func TestWorker_Activate_Success(t *testing.T) {
 }
 
 func TestWorker_Activate_Error_AlreadyActive(t *testing.T) {
-	worker, err := NewWorker("Ivan", "Ivanov", "Ivanovich")
+	accountID := uuid.New()
+	worker, err := NewWorker("Иван", "Иванов", "Иванович",accountID)
 	if err != nil {
 		t.Fatalf("expected nil, got %v", err)
 	}
@@ -169,7 +163,8 @@ func TestWorker_Activate_Error_AlreadyActive(t *testing.T) {
 }
 
 func TestWorker_Deactivate_Success(t *testing.T) {
-	worker, err := NewWorker("Ivan", "Ivanov", "Ivanovich")
+	accountID := uuid.New()
+	worker, err := NewWorker("Иван", "Иванов", "Иванович",accountID)
 	if err != nil {
 		t.Fatalf("expected nil, got %v", err)
 	}
@@ -186,7 +181,8 @@ func TestWorker_Deactivate_Success(t *testing.T) {
 }
 
 func TestWorker_Deactivate_Error_AlreadyDeactive(t *testing.T) {
-	worker, err := NewWorker("Ivan", "Ivanov", "Ivanovich")
+	accountID := uuid.New()
+	worker, err := NewWorker("Иван", "Иванов", "Иванович",accountID)
 	if err != nil {
 		t.Fatalf("expected nil, got %v", err)
 	}
@@ -203,7 +199,8 @@ func TestWorker_Deactivate_Error_AlreadyDeactive(t *testing.T) {
 }
 
 func TestWorker_AddTask_Error_NotActive(t *testing.T) {
-	worker, err := NewWorker("Ivan", "Ivanov", "Ivanovich")
+	accountID := uuid.New()
+	worker, err := NewWorker("Иван", "Иванов", "Иванович",accountID)
 	if err != nil {
 		t.Fatalf("expected nil, got %v", err)
 	}
@@ -225,7 +222,8 @@ func TestWorker_AddTask_Error_NotActive(t *testing.T) {
 }
 
 func TestWorker_AddTask_Success(t *testing.T) {
-	worker, err := NewWorker("Ivan", "Ivanov", "Ivanovich")
+	accountID := uuid.New()
+	worker, err := NewWorker("Иван", "Иванов", "Иванович",accountID)
 	if err != nil {
 		t.Fatalf("expected nil, got %v", err)
 	}
@@ -247,7 +245,8 @@ func TestWorker_AddTask_Success(t *testing.T) {
 }
 
 func TestWorker_AddTask_Error_TaskAlreadyAssigned(t *testing.T) {
-	worker, err := NewWorker("Ivan", "Ivanov", "Ivanovich")
+	accountID := uuid.New()
+	worker, err := NewWorker("Иван", "Иванов", "Иванович",accountID)
 	if err != nil {
 		t.Fatalf("expected nil, got %v", err)
 	}
@@ -274,7 +273,8 @@ func TestWorker_AddTask_Error_TaskAlreadyAssigned(t *testing.T) {
 }
 
 func TestWorker_RemoveTask_Success(t *testing.T) {
-	worker, err := NewWorker("Ivan", "Ivanov", "Ivanovich")
+	accountID := uuid.New()
+	worker, err := NewWorker("Иван", "Иванов", "Иванович",accountID)
 	if err != nil {
 		t.Fatalf("expected nil, got %v", err)
 	}
@@ -303,7 +303,8 @@ func TestWorker_RemoveTask_Success(t *testing.T) {
 }
 
 func TestWorker_RemoveTask_Error_TaskNotFound(t *testing.T) {
-	worker, err := NewWorker("Ivan", "Ivanov", "Ivanovich")
+	accountID := uuid.New()
+	worker, err := NewWorker("Иван", "Иванов", "Иванович",accountID)
 	if err != nil {
 		t.Fatalf("expected nil, got %v", err)
 	}

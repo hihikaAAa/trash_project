@@ -2,27 +2,23 @@
 package user
 
 import (
-	"fmt"
-
-	"github.com/hihikaAAa/TrashProject/internal/domain/person"
-
-	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
-)
 
-var validate = validator.New()
+	domainerrors "github.com/hihikaAAa/TrashProject/internal/domain/domain_errors"
+	"github.com/hihikaAAa/TrashProject/internal/domain/person"
+)
 
 type User struct {
 	ID        uuid.UUID     `json:"id"`
 	AccountID uuid.UUID `json:"account_id"`
-	Person    *person.Person `json:"person" validate:"required"`
-	AddressID uuid.UUID     `json:"address_id" validate:"required"`
+	Person    *person.Person `json:"person"`
+	AddressID uuid.UUID     `json:"address_id"`
 
 	// TODO : Добавить подписку
-	// Телефон/email для логина
+	// Телефон для логина
 }
 
-func NewUser(name,surname, lastName string, addressID uuid.UUID) (*User, error){
+func NewUser(name,surname, lastName string, addressID, accountID uuid.UUID) (*User, error){
 	id := uuid.New()
 
 	p, err := person.NewPerson(name, surname, lastName)
@@ -30,32 +26,37 @@ func NewUser(name,surname, lastName string, addressID uuid.UUID) (*User, error){
 		return nil, err
 	}
 
+	if err := validateID(addressID); err != nil{
+		return nil, err
+	}
+
+	if err := validateID(accountID); err != nil{
+		return nil, err
+	}
+
 	u := User{
 		ID: id,
+		AccountID: accountID,
 		Person: p,
 		AddressID: addressID,
 	}
 
-	if err := u.Validate(); err != nil{
-		return nil, fmt.Errorf("validate: %w", err)
-	}
 	return &u, nil
 }
 
-func (u *User) UpdateUser(person person.Person) error{
-	next := User{
-		ID: u.ID,
-		Person: &person,
-		AddressID: u.AddressID,
+func (u *User) UpdateUser(name,surname,lastName string) error{
+	p, err := person.NewPerson(name,surname,lastName)
+	if err != nil{
+		return err
 	}
 
-	if err := next.Validate(); err != nil{
-		return fmt.Errorf("validate: %w", err)
-	}
-	u.Person = next.Person
+	u.Person = p
 	return nil
 }
 
-func (u *User) Validate() error{
-	return validate.Struct(u)
+func validateID(id uuid.UUID) error{
+	if id == uuid.Nil{
+		return domainerrors.ErrEmptyID
+	}
+	return nil
 }

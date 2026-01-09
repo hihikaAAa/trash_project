@@ -2,26 +2,27 @@
 package worker
 
 import (
-	"fmt"
-
-	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 
 	domainerrors "github.com/hihikaAAa/TrashProject/internal/domain/domain_errors"
 	"github.com/hihikaAAa/TrashProject/internal/domain/person"
 )
 
-var validate = validator.New()
 type Worker struct {
 	ID       uuid.UUID      `json:"id"`
-	Person   *person.Person `json:"person" validate:"required"`
+	AccountID uuid.UUID 	`json:"account_id"`
+	Person   *person.Person `json:"person"`
 	TaskList []uuid.UUID    `json:"task_list"`
 	IsActive bool           `json:"is_active"`
 	// TODO : Добавить район для работы
 }
 
-func NewWorker(name,surname,lastName string) (*Worker, error) {
+func NewWorker(name,surname,lastName string, accountID uuid.UUID) (*Worker, error) {
 	id := uuid.New()
+
+	if err := validateAccountID(accountID); err != nil{
+		return nil, err
+	}
 
 	p, err := person.NewPerson(name, surname, lastName)
 	if err != nil {
@@ -30,27 +31,20 @@ func NewWorker(name,surname,lastName string) (*Worker, error) {
 
 	w := Worker{
 		ID:     id,
+		AccountID: accountID,
 		Person: p,
 	}
 
-	if err := w.Validate(); err != nil {
-		return nil, fmt.Errorf("validate: %w", err)
-	}
 	return &w, nil
 }
 
-func (w *Worker) UpdateWorker(person person.Person) error {
-	next := Worker{
-		ID:       w.ID,
-		Person:   &person,
-		TaskList: w.TaskList,
-		IsActive: w.IsActive,
+func (w *Worker) UpdateWorker(name,surname,lastName string) error {
+	p, err := person.NewPerson(name,surname,lastName)
+	if err != nil{
+		return err
 	}
 
-	if err := next.Validate(); err != nil {
-		return fmt.Errorf("validate: %w", err)
-	}
-	w.Person = next.Person
+	w.Person = p
 	return nil
 }
 
@@ -93,6 +87,9 @@ func (w *Worker) RemoveTask(taskID uuid.UUID) error {
 	return domainerrors.ErrTaskNotFound
 }
 
-func (w *Worker) Validate() error {
-	return validate.Struct(w)
+func validateAccountID(id uuid.UUID) error{
+	if id == uuid.Nil{
+		return domainerrors.ErrEmptyAccountID
+	}
+	return nil
 }

@@ -15,6 +15,7 @@ var(
 	ErrBadTaskTime = errors.New("bad task time")
 	ErrBadTaskStatus = errors.New("bad task status")
 	ErrBadTaskWorker = errors.New("bad task worker")
+	ErrEmptyAccountID = errors.New("empty account id ")
 
 	ErrWorkerNotFound = errors.New("worker not found")
 	ErrWorkerExists = errors.New("worker exists")
@@ -25,6 +26,7 @@ var(
 
 	ErrUserExists = errors.New("user already exists")
 	ErrUserNotFound = errors.New("user not found")
+	ErrEmptyID = errors.New("empty required id")
 
 	ErrAddressNotFound = errors.New("address not found")
 	ErrAddressExists = errors.New("address exists")
