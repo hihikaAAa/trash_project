@@ -15,7 +15,6 @@ import (
 
 type UserRepository interface{
 	AddUser(ctx context.Context, user *user.User) error
-	CheckNotExists(ctx context.Context, email string) error
 	GetByID(ctx context.Context, id uuid.UUID) (*user.User, error)
 	FindByFullName(ctx context.Context, name, surname, lastName string) (*user.User, error)
 	List(ctx context.Context) ([]*user.User, error)
@@ -35,46 +34,27 @@ func (r *userRepository) AddUser(ctx context.Context, user *user.User) error {
 	const op = "internal.postgres.user_repo.AddUser"
 
 	const q = `
-	INSERT INTO users(user_id, first_name, surname, last_name, address_id)
-	VALUES ($1, $2, $3, $4, $5)
+	INSERT INTO users(user_id, account_id, first_name, surname, last_name, address_id)
+	VALUES ($1, $2, $3, $4, $5, $6)
 	`
-	_, err := r.db.ExecContext(ctx, q, user.ID, user.Person.FirstName, user.Person.Surname, user.Person.LastName, user.AddressID)
+	_, err := r.db.ExecContext(ctx, q, user.ID, user.AccountID, user.Person.FirstName, user.Person.Surname, user.Person.LastName, user.AddressID)
 	if err != nil {
 		return fmt.Errorf("%s, ExecContext: %w", op, err)
 	}
 	return nil
 }
 
-func (r *userRepository) CheckNotExists(ctx context.Context, email string) error {
-	const op = "internal.postgres.user_repo.CheckNotExists"
-
-	const q = `
-	SELECT 1 
-	FROM users 
-	WHERE first_name = $1 AND surname = $2 AND last_name = $3
-	`
-	var dummy int
-	err := r.db.QueryRowContext(ctx, q, email).Scan(&dummy)
-	if err == sql.ErrNoRows {
-		return nil
-	}
-	if err != nil {
-		return fmt.Errorf("%s, QueryRowContext: %w", op, err)
-	}
-	return postgreserrors.ErrUserExists
-}
-
 func (r *userRepository) GetByID(ctx context.Context, id uuid.UUID) (*user.User, error) {
 	const op = "internal.postgres.user_repo.GetByID"
 
 	const q = `
-	SELECT user_id, first_name, surname, last_name, address_id
+	SELECT user_id, account_id, first_name, surname, last_name, address_id
 	FROM users
 	WHERE user_id = $1
 	`
 
 	u := &user.User{Person: &person.Person{}}
-	err := r.db.QueryRowContext(ctx, q, id).Scan(&u.ID, &u.Person.FirstName, &u.Person.Surname, &u.Person.LastName, &u.AddressID)
+	err := r.db.QueryRowContext(ctx, q, id).Scan(&u.ID, &u.AccountID, &u.Person.FirstName, &u.Person.Surname, &u.Person.LastName, &u.AddressID)
 	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("%s: %w", op, postgreserrors.ErrUserNotFound)
 	}
@@ -88,13 +68,13 @@ func (r *userRepository) FindByFullName(ctx context.Context, name, surname, last
 	const op = "internal.postgres.user_repo.FindByFullName"
 
 	const q = `
-	SELECT user_id, first_name, surname, last_name, address_id
+	SELECT user_id, account_id, first_name, surname, last_name, address_id
 	FROM users
 	WHERE first_name = $1 AND surname = $2 AND last_name = $3
 	`
 
 	u := &user.User{Person: &person.Person{}}
-	err := r.db.QueryRowContext(ctx, q, name, surname, lastName).Scan(&u.ID, &u.Person.FirstName, &u.Person.Surname, &u.Person.LastName, &u.AddressID)
+	err := r.db.QueryRowContext(ctx, q, name, surname, lastName).Scan(&u.ID, &u.AccountID, &u.Person.FirstName, &u.Person.Surname, &u.Person.LastName, &u.AddressID)
 	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("%s: %w", op, postgreserrors.ErrUserNotFound)
 	}
@@ -108,7 +88,7 @@ func (r *userRepository) List(ctx context.Context) ([]*user.User, error) {
 	const op = "internal.postgres.user_repo.List"
 
 	const q = `
-	SELECT user_id, first_name, surname, last_name, address_id
+	SELECT user_id, account_id, first_name, surname, last_name, address_id
 	FROM users
 	`
 
@@ -122,7 +102,7 @@ func (r *userRepository) List(ctx context.Context) ([]*user.User, error) {
 
 	for rows.Next() {
 		u := &user.User{Person: &person.Person{}}
-		err := rows.Scan(&u.ID, &u.Person.FirstName, &u.Person.Surname, &u.Person.LastName, &u.AddressID)
+		err := rows.Scan(&u.ID, &u.AccountID, &u.Person.FirstName, &u.Person.Surname, &u.Person.LastName, &u.AddressID)
 		if err != nil {
 			return nil, fmt.Errorf("%s, Scan: %w", op, err)
 		}
@@ -164,14 +144,14 @@ func (r *userRepository) UpdateUser(ctx context.Context, u *user.User) (*user.Us
 
 	const q = `
 	UPDATE users
-	SET first_name = $2, surname = $3, last_name = $4, address_id = $5, updated_at = now()
+	SET account_id = $2, first_name = $3, surname = $4, last_name = $5, address_id = $6, updated_at = now()
 	WHERE user_id = $1
-	RETURNING user_id, first_name, surname, last_name, address_id
+	RETURNING user_id, account_id, first_name, surname, last_name, address_id
 	`
 
 	user := &user.User{Person: &person.Person{}}
-	err := r.db.QueryRowContext(ctx, q, u.ID, u.Person.FirstName, u.Person.Surname, u.Person.LastName, u.AddressID).Scan(
-		&user.ID, &user.Person.FirstName, &user.Person.Surname, &user.Person.LastName, &user.AddressID,
+	err := r.db.QueryRowContext(ctx, q, u.ID, u.AccountID, u.Person.FirstName, u.Person.Surname, u.Person.LastName, u.AddressID).Scan(
+		&user.ID, &user.AccountID, &user.Person.FirstName, &user.Person.Surname, &user.Person.LastName, &user.AddressID,
 	)
 	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("%s, %w", op, postgreserrors.ErrUserNotFound)

@@ -14,7 +14,6 @@ import (
 
 type WorkerRepository interface {
 	AddWorker(ctx context.Context, worker *worker.Worker) error
-	CheckNotExists(ctx context.Context, name, surname, lastName string) error
 	SetIsActive(ctx context.Context, id uuid.UUID, active bool) (*worker.Worker, error)
 	FindActive(ctx context.Context) ([]*worker.Worker, error)
 	GetByID(ctx context.Context, id uuid.UUID) (*worker.Worker, error)
@@ -34,37 +33,15 @@ func (r *workerRepository) AddWorker(ctx context.Context, worker *worker.Worker)
 	const op = "internal.postgres.worker_repo.AddWorker"
 
 	const q = `
-	INSERT INTO workers(worker_id, first_name,surname,last_name,is_active)
-	VALUES ($1, $2, $3, $4, $5) 
+	INSERT INTO workers(worker_id, account_id, first_name, surname, last_name, is_active)
+	VALUES ($1, $2, $3, $4, $5, $6) 
 	`
 
-	err := r.CheckNotExists(ctx, worker.Person.FirstName, worker.Person.Surname, worker.Person.LastName)
-	if err != nil {
-		return err
-	}
-
-	_, err = r.db.ExecContext(ctx, q, worker.ID, worker.Person.FirstName, worker.Person.Surname, worker.Person.LastName, false)
+	_, err := r.db.ExecContext(ctx, q, worker.ID, worker.AccountID ,worker.Person.FirstName, worker.Person.Surname, worker.Person.LastName, false)
 	if err != nil {
 		return fmt.Errorf("%s, ExecContext: %w", op, err)
 	}
 	return nil
-}
-
-func (r *workerRepository) CheckNotExists(ctx context.Context, name, surname, lastName string) error {
-	const op = "internal.postgres.worker_repo.CheckNotExists"
-
-	const q = `
-	SELECT 1 FROM workers WHERE first_name = $1 AND surname = $2 AND last_name = $3
-	`
-	var dummy int
-	err := r.db.QueryRowContext(ctx, q, name, surname, lastName).Scan(&dummy)
-	if err == sql.ErrNoRows {
-		return nil
-	}
-	if err != nil {
-		return fmt.Errorf("%s, QueryRowContext: %w", op, err)
-	}
-	return postgreserrors.ErrWorkerExists
 }
 
 func (r *workerRepository) SetIsActive(ctx context.Context, id uuid.UUID, active bool) (*worker.Worker, error) {
@@ -74,11 +51,11 @@ func (r *workerRepository) SetIsActive(ctx context.Context, id uuid.UUID, active
 	UPDATE workers 
 	SET is_active = $2, updated_at = now()
 	WHERE worker_id = $1
-	RETURNING worker_id, first_name, surname, last_name, is_active
+	RETURNING worker_id, account_id, first_name, surname, last_name, is_active
 	`
 
 	w := &worker.Worker{Person: &person.Person{}}
-	err := r.db.QueryRowContext(ctx, q, id, active).Scan(&w.ID, &w.Person.FirstName, &w.Person.Surname, &w.Person.LastName, &w.IsActive)
+	err := r.db.QueryRowContext(ctx, q, id, active).Scan(&w.ID,&w.AccountID, &w.Person.FirstName, &w.Person.Surname, &w.Person.LastName, &w.IsActive)
 	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("%s, %w", op, postgreserrors.ErrWorkerNotFound)
 	}
@@ -92,7 +69,7 @@ func (r *workerRepository) FindActive(ctx context.Context) ([]*worker.Worker, er
 	const op = "internal.postgres.worker_repo.FindActive"
 
 	const q = `
-	SELECT worker_id, first_name, surname, is_active
+	SELECT worker_id, account_id, first_name, surname, is_active
 	FROM workers 
 	WHERE is_active = $1
 	`
@@ -106,7 +83,7 @@ func (r *workerRepository) FindActive(ctx context.Context) ([]*worker.Worker, er
 	activeWorkers := make([]*worker.Worker, 0)
 	for rows.Next() {
 		w := &worker.Worker{Person: &person.Person{}}
-		err := rows.Scan(&w.ID, &w.Person.FirstName, &w.Person.Surname, &w.IsActive)
+		err := rows.Scan(&w.ID, &w.AccountID, &w.Person.FirstName, &w.Person.Surname, &w.IsActive)
 		if err != nil {
 			return nil, fmt.Errorf("%s, Scan: %w", op, err)
 		}
@@ -122,13 +99,13 @@ func (r *workerRepository) GetByID(ctx context.Context, id uuid.UUID) (*worker.W
 	const op = "internal.postgres.worker_repo.GetByID"
 
 	const q = `
-	SELECT worker_id, first_name, surname, last_name, is_active
+	SELECT worker_id, account_id, first_name, surname, last_name, is_active
 	FROM workers
 	WHERE worker_id = $1
 	`
 
 	w := &worker.Worker{Person: &person.Person{}}
-	err := r.db.QueryRowContext(ctx, q, id).Scan(&w.ID, &w.Person.FirstName, &w.Person.Surname, &w.Person.LastName, &w.IsActive)
+	err := r.db.QueryRowContext(ctx, q, id).Scan(&w.ID, &w.AccountID, &w.Person.FirstName, &w.Person.Surname, &w.Person.LastName, &w.IsActive)
 	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("%s: %w", op, postgreserrors.ErrWorkerNotFound)
 	}
@@ -142,7 +119,7 @@ func (r *workerRepository) List(ctx context.Context) ([]*worker.Worker, error) {
 	const op = "internal.postgres.worker_repo.List"
 
 	const q = `
-	SELECT worker_id, first_name, surname, last_name, is_active
+	SELECT worker_id, account_id, first_name, surname, last_name, is_active
 	FROM workers
 	`
 
@@ -156,7 +133,7 @@ func (r *workerRepository) List(ctx context.Context) ([]*worker.Worker, error) {
 
 	for rows.Next() {
 		w := &worker.Worker{Person: &person.Person{}}
-		err := rows.Scan(&w.ID, &w.Person.FirstName, &w.Person.Surname, &w.Person.LastName, &w.IsActive)
+		err := rows.Scan(&w.ID, &w.AccountID, &w.Person.FirstName, &w.Person.Surname, &w.Person.LastName, &w.IsActive)
 		if err != nil {
 			return nil, fmt.Errorf("%s, Scan: %w", op, err)
 		}
@@ -198,14 +175,14 @@ func (r *workerRepository) UpdateWorker(ctx context.Context, w *worker.Worker) (
 
 	const q = `
 	UPDATE workers
-	SET first_name = $2, surname = $3, last_name = $4, is_active = $5, updated_at = now()
+	SET account_id = $2, first_name = $3, surname = $4, last_name = $5, is_active = $6, updated_at = now()
 	WHERE worker_id = $1
-	RETURNING worker_id, first_name, surname, last_name, is_active
+	RETURNING worker_id, account_id, first_name, surname, last_name, is_active
 	`
 
 	worker := &worker.Worker{Person: &person.Person{}}
-	err := r.db.QueryRowContext(ctx, q, w.ID, w.Person.FirstName, w.Person.Surname, w.Person.LastName, w.IsActive).Scan(
-		&worker.ID, &worker.Person.FirstName, &worker.Person.Surname, &worker.Person.LastName, &worker.IsActive,
+	err := r.db.QueryRowContext(ctx, q, w.ID, w.AccountID, w.Person.FirstName, w.Person.Surname, w.Person.LastName, w.IsActive).Scan(
+		&worker.ID, &worker.AccountID, &worker.Person.FirstName, &worker.Person.Surname, &worker.Person.LastName, &worker.IsActive,
 	)
 	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("%s, %w", op, postgreserrors.ErrWorkerNotFound)

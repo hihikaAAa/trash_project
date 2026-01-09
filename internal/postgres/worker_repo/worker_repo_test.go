@@ -4,13 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"testing"
-
 	"regexp"
+	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/google/uuid"
 
+	"github.com/hihikaAAa/TrashProject/internal/domain/person"
 	"github.com/hihikaAAa/TrashProject/internal/domain/worker"
 	postgreserrors "github.com/hihikaAAa/TrashProject/internal/postgres/postgres_errors"
 )
@@ -38,14 +38,20 @@ func TestWorkerRepository_AddWorker_Success(t *testing.T) {
 
 	ctx := context.Background()
 
-	w, _ := worker.NewWorker("Ivan", "Ivanov", "Ivanovich")
+	w := &worker.Worker{
+		ID:        uuid.New(),
+		AccountID: uuid.New(),
+		Person:    &person.Person{FirstName: "Иван", Surname: "Иванов", LastName: "Иванович"},
+		IsActive:  false,
+	}
 
-	mock.ExpectQuery("SELECT 1 FROM workers").
-		WithArgs(w.Person.FirstName, w.Person.Surname, w.Person.LastName).
-		WillReturnError(sql.ErrNoRows)
-
-	mock.ExpectExec("INSERT INTO workers").
-		WithArgs(w.ID, w.Person.FirstName, w.Person.Surname, w.Person.LastName, w.IsActive).
+	mock.ExpectExec(
+		regexp.QuoteMeta(`
+	INSERT INTO workers(worker_id, account_id, first_name, surname, last_name, is_active)
+	VALUES ($1, $2, $3, $4, $5, $6) 
+	`),
+	).
+		WithArgs(w.ID, w.AccountID, w.Person.FirstName, w.Person.Surname, w.Person.LastName, false).
 		WillReturnResult(sqlmock.NewResult(0, 1))
 
 	err := repo.AddWorker(ctx, w)
@@ -58,99 +64,26 @@ func TestWorkerRepository_AddWorker_Success(t *testing.T) {
 	}
 }
 
-func TestWorkerRepository_AddWorker_WorkerAlreadyExists(t *testing.T) {
-	repo, mock, cleanup := newTestWorkerRepo(t)
-	defer cleanup()
-
-	ctx := context.Background()
-
-	w, _ := worker.NewWorker("Ivan", "Ivanov", "Ivanovich")
-
-	rows := sqlmock.NewRows([]string{"dummy"}).AddRow(1)
-	mock.ExpectQuery("SELECT 1 FROM workers").
-		WithArgs(w.Person.FirstName, w.Person.Surname, w.Person.LastName).
-		WillReturnRows(rows)
-
-	err := repo.AddWorker(ctx, w)
-	if !errors.Is(err, postgreserrors.ErrWorkerExists) {
-		t.Fatalf("expected ErrWorkerExists, got: %v", err)
-	}
-
-	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Fatalf("unmet expectations: %v", err)
-	}
-}
-
-func TestWorkerRepository_CheckNotExists_NoRows(t *testing.T) {
-	repo, mock, cleanup := newTestWorkerRepo(t)
-	defer cleanup()
-
-	ctx := context.Background()
-
-	mock.ExpectQuery("SELECT 1 FROM workers").
-		WithArgs("Ivan", "Ivanov", "Ivanovich").
-		WillReturnError(sql.ErrNoRows)
-
-	err := repo.CheckNotExists(ctx, "Ivan", "Ivanov", "Ivanovich")
-	if err != nil {
-		t.Fatalf("expected nil, got: %v", err)
-	}
-
-	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Fatalf("unmet expectations: %v", err)
-	}
-}
-
-func TestWorkerRepository_CheckNotExists_Exists(t *testing.T) {
-	repo, mock, cleanup := newTestWorkerRepo(t)
-	defer cleanup()
-
-	ctx := context.Background()
-
-	rows := sqlmock.NewRows([]string{"dummy"}).AddRow(1)
-	mock.ExpectQuery("SELECT 1 FROM workers").
-		WithArgs("Ivan", "Ivanov", "Ivanovich").
-		WillReturnRows(rows)
-
-	err := repo.CheckNotExists(ctx, "Ivan", "Ivanov", "Ivanovich")
-	if !errors.Is(err, postgreserrors.ErrWorkerExists) {
-		t.Fatalf("expected ErrWorkerExists, got: %v", err)
-	}
-
-	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Fatalf("unmet expectations: %v", err)
-	}
-}
-
-func TestWorkerRepository_CheckNotExists_DBError(t *testing.T) {
-	repo, mock, cleanup := newTestWorkerRepo(t)
-	defer cleanup()
-
-	ctx := context.Background()
-	dbErr := errors.New("db error")
-
-	mock.ExpectQuery("SELECT 1 FROM workers").
-		WithArgs("Ivan", "Ivanov", "Ivanovich").
-		WillReturnError(dbErr)
-
-	err := repo.CheckNotExists(ctx, "Ivan", "Ivanov", "Ivanovich")
-	if err == nil || !errors.Is(err, dbErr) {
-		t.Fatalf("expected wrapped db error, got: %v", err)
-	}
-}
-
 func TestWorkerRepository_SetIsActive_Success(t *testing.T) {
 	repo, mock, cleanup := newTestWorkerRepo(t)
 	defer cleanup()
 
 	ctx := context.Background()
 	id := uuid.New()
+	accID := uuid.New()
 
-	rows := sqlmock.NewRows(
-		[]string{"worker_id", "first_name", "surname", "last_name", "is_active"},
-	).AddRow(id, "Ivan", "Ivanov", "Ivanovich", true)
+	rows := sqlmock.NewRows([]string{
+		"worker_id", "account_id", "first_name", "surname", "last_name", "is_active",
+	}).AddRow(id, accID, "Иван", "Иванов", "Иванович", true)
 
-	mock.ExpectQuery("UPDATE workers").
+	mock.ExpectQuery(
+		regexp.QuoteMeta(`
+	UPDATE workers 
+	SET is_active = $2, updated_at = now()
+	WHERE worker_id = $1
+	RETURNING worker_id, account_id, first_name, surname, last_name, is_active
+	`),
+	).
 		WithArgs(id, true).
 		WillReturnRows(rows)
 
@@ -159,7 +92,7 @@ func TestWorkerRepository_SetIsActive_Success(t *testing.T) {
 		t.Fatalf("SetIsActive returned error: %v", err)
 	}
 
-	if w.ID != id || !w.IsActive {
+	if w.ID != id || w.AccountID != accID || !w.IsActive {
 		t.Fatalf("unexpected worker: %+v", w)
 	}
 
@@ -175,7 +108,14 @@ func TestWorkerRepository_SetIsActive_NotFound(t *testing.T) {
 	ctx := context.Background()
 	id := uuid.New()
 
-	mock.ExpectQuery("UPDATE workers").
+	mock.ExpectQuery(
+		regexp.QuoteMeta(`
+	UPDATE workers 
+	SET is_active = $2, updated_at = now()
+	WHERE worker_id = $1
+	RETURNING worker_id, account_id, first_name, surname, last_name, is_active
+	`),
+	).
 		WithArgs(id, true).
 		WillReturnError(sql.ErrNoRows)
 
@@ -193,7 +133,14 @@ func TestWorkerRepository_SetIsActive_DBError(t *testing.T) {
 	id := uuid.New()
 	dbErr := errors.New("db error")
 
-	mock.ExpectQuery("UPDATE workers").
+	mock.ExpectQuery(
+		regexp.QuoteMeta(`
+	UPDATE workers 
+	SET is_active = $2, updated_at = now()
+	WHERE worker_id = $1
+	RETURNING worker_id, account_id, first_name, surname, last_name, is_active
+	`),
+	).
 		WithArgs(id, true).
 		WillReturnError(dbErr)
 
@@ -211,12 +158,20 @@ func TestWorkerRepository_FindActive_Success(t *testing.T) {
 
 	id1 := uuid.New()
 	id2 := uuid.New()
+	acc1 := uuid.New()
+	acc2 := uuid.New()
 
-	rows := sqlmock.NewRows([]string{"worker_id", "first_name", "surname", "is_active"}).
-		AddRow(id1, "Ivan", "Ivanov", true).
-		AddRow(id2, "Petr", "Petrov", true)
+	rows := sqlmock.NewRows([]string{"worker_id", "account_id", "first_name", "surname", "is_active"}).
+		AddRow(id1, acc1, "Иван", "Иванов", true).
+		AddRow(id2, acc2, "Пётр", "Петров", true)
 
-	mock.ExpectQuery("FROM workers").
+	mock.ExpectQuery(
+		regexp.QuoteMeta(`
+	SELECT worker_id, account_id, first_name, surname, is_active
+	FROM workers 
+	WHERE is_active = $1
+	`),
+	).
 		WithArgs(true).
 		WillReturnRows(rows)
 
@@ -237,7 +192,13 @@ func TestWorkerRepository_FindActive_QueryError(t *testing.T) {
 	ctx := context.Background()
 	dbErr := errors.New("db error")
 
-	mock.ExpectQuery("FROM workers").
+	mock.ExpectQuery(
+		regexp.QuoteMeta(`
+	SELECT worker_id, account_id, first_name, surname, is_active
+	FROM workers 
+	WHERE is_active = $1
+	`),
+	).
 		WithArgs(true).
 		WillReturnError(dbErr)
 
@@ -253,12 +214,19 @@ func TestWorkerRepository_GetByID_Success(t *testing.T) {
 
 	ctx := context.Background()
 	id := uuid.New()
+	accID := uuid.New()
 
-	rows := sqlmock.NewRows(
-		[]string{"worker_id", "first_name", "surname", "last_name", "is_active"},
-	).AddRow(id, "Ivan", "Ivanov", "Ivanovich", true)
+	rows := sqlmock.NewRows([]string{
+		"worker_id", "account_id", "first_name", "surname", "last_name", "is_active",
+	}).AddRow(id, accID, "Иван", "Иванов", "Иванович", true)
 
-	mock.ExpectQuery("FROM workers").
+	mock.ExpectQuery(
+		regexp.QuoteMeta(`
+	SELECT worker_id, account_id, first_name, surname, last_name, is_active
+	FROM workers
+	WHERE worker_id = $1
+	`),
+	).
 		WithArgs(id).
 		WillReturnRows(rows)
 
@@ -267,7 +235,7 @@ func TestWorkerRepository_GetByID_Success(t *testing.T) {
 		t.Fatalf("GetByID returned error: %v", err)
 	}
 
-	if w.ID != id || w.Person.FirstName != "Ivan" {
+	if w.ID != id || w.AccountID != accID || w.Person.FirstName != "Иван" {
 		t.Fatalf("unexpected worker: %+v", w)
 	}
 }
@@ -279,7 +247,13 @@ func TestWorkerRepository_GetByID_NotFound(t *testing.T) {
 	ctx := context.Background()
 	id := uuid.New()
 
-	mock.ExpectQuery("FROM workers").
+	mock.ExpectQuery(
+		regexp.QuoteMeta(`
+	SELECT worker_id, account_id, first_name, surname, last_name, is_active
+	FROM workers
+	WHERE worker_id = $1
+	`),
+	).
 		WithArgs(id).
 		WillReturnError(sql.ErrNoRows)
 
@@ -297,7 +271,13 @@ func TestWorkerRepository_GetByID_DBError(t *testing.T) {
 	id := uuid.New()
 	dbErr := errors.New("db error")
 
-	mock.ExpectQuery("FROM workers").
+	mock.ExpectQuery(
+		regexp.QuoteMeta(`
+	SELECT worker_id, account_id, first_name, surname, last_name, is_active
+	FROM workers
+	WHERE worker_id = $1
+	`),
+	).
 		WithArgs(id).
 		WillReturnError(dbErr)
 
@@ -315,12 +295,21 @@ func TestWorkerRepository_List_Success(t *testing.T) {
 
 	id1 := uuid.New()
 	id2 := uuid.New()
+	acc1 := uuid.New()
+	acc2 := uuid.New()
 
-	rows := sqlmock.NewRows([]string{"worker_id", "first_name", "surname", "last_name", "is_active"}).
-		AddRow(id1, "Ivan", "Ivanov", "Ivanovich", true).
-		AddRow(id2, "Petr", "Petrov", "Petrovich", false)
+	rows := sqlmock.NewRows([]string{
+		"worker_id", "account_id", "first_name", "surname", "last_name", "is_active",
+	}).
+		AddRow(id1, acc1, "Иван", "Иванов", "Иванович", true).
+		AddRow(id2, acc2, "Пётр", "Петров", "Петрович", false)
 
-	mock.ExpectQuery("SELECT worker_id").
+	mock.ExpectQuery(
+		regexp.QuoteMeta(`
+	SELECT worker_id, account_id, first_name, surname, last_name, is_active
+	FROM workers
+	`),
+	).
 		WillReturnRows(rows)
 
 	workers, err := repo.List(ctx)
@@ -340,7 +329,12 @@ func TestWorkerRepository_List_QueryError(t *testing.T) {
 	ctx := context.Background()
 	dbErr := errors.New("db error")
 
-	mock.ExpectQuery("SELECT worker_id").
+	mock.ExpectQuery(
+		regexp.QuoteMeta(`
+	SELECT worker_id, account_id, first_name, surname, last_name, is_active
+	FROM workers
+	`),
+	).
 		WillReturnError(dbErr)
 
 	_, err := repo.List(ctx)
@@ -356,7 +350,12 @@ func TestWorkerRepository_DeleteWorker_Success(t *testing.T) {
 	ctx := context.Background()
 	id := uuid.New()
 
-	mock.ExpectExec("DELETE FROM workers").
+	mock.ExpectExec(
+		regexp.QuoteMeta(`
+		DELETE FROM workers
+		WHERE worker_id = $1
+	`),
+	).
 		WithArgs(id).
 		WillReturnResult(sqlmock.NewResult(0, 1))
 
@@ -373,7 +372,12 @@ func TestWorkerRepository_DeleteWorker_NotFound(t *testing.T) {
 	ctx := context.Background()
 	id := uuid.New()
 
-	mock.ExpectExec("DELETE FROM workers").
+	mock.ExpectExec(
+		regexp.QuoteMeta(`
+		DELETE FROM workers
+		WHERE worker_id = $1
+	`),
+	).
 		WithArgs(id).
 		WillReturnResult(sqlmock.NewResult(0, 0))
 
@@ -391,7 +395,12 @@ func TestWorkerRepository_DeleteWorker_ExecError(t *testing.T) {
 	id := uuid.New()
 	dbErr := errors.New("db error")
 
-	mock.ExpectExec("DELETE FROM workers").
+	mock.ExpectExec(
+		regexp.QuoteMeta(`
+		DELETE FROM workers
+		WHERE worker_id = $1
+	`),
+	).
 		WithArgs(id).
 		WillReturnError(dbErr)
 
@@ -407,18 +416,26 @@ func TestWorkerRepository_UpdateWorker_Success(t *testing.T) {
 
 	ctx := context.Background()
 
-	w, _ := worker.NewWorker("Ivan", "Ivanov", "Ivanovich")
+	w := &worker.Worker{
+		ID:        uuid.New(),
+		AccountID: uuid.New(),
+		Person:    &person.Person{FirstName: "Иван", Surname: "Иванов", LastName: "Иванович"},
+		IsActive:  true,
+	}
 
-	rows := sqlmock.NewRows([]string{"worker_id", "first_name", "surname", "last_name", "is_active"}).
-		AddRow(w.ID, w.Person.FirstName, w.Person.Surname, w.Person.LastName, w.IsActive)
+	rows := sqlmock.NewRows([]string{
+		"worker_id", "account_id", "first_name", "surname", "last_name", "is_active",
+	}).AddRow(w.ID, w.AccountID, w.Person.FirstName, w.Person.Surname, w.Person.LastName, w.IsActive)
 
-	mock.ExpectQuery(regexp.QuoteMeta(`
-		UPDATE workers
-		SET first_name = $2, surname = $3, last_name = $4, is_active = $5, updated_at = now()
-		WHERE worker_id = $1
-		RETURNING worker_id, first_name, surname, last_name, is_active
-	`)).
-		WithArgs(w.ID, w.Person.FirstName, w.Person.Surname, w.Person.LastName, w.IsActive).
+	mock.ExpectQuery(
+		regexp.QuoteMeta(`
+	UPDATE workers
+	SET account_id = $2, first_name = $3, surname = $4, last_name = $5, is_active = $6, updated_at = now()
+	WHERE worker_id = $1
+	RETURNING worker_id, account_id, first_name, surname, last_name, is_active
+	`),
+	).
+		WithArgs(w.ID, w.AccountID, w.Person.FirstName, w.Person.Surname, w.Person.LastName, w.IsActive).
 		WillReturnRows(rows)
 
 	updated, err := repo.UpdateWorker(ctx, w)
@@ -426,7 +443,7 @@ func TestWorkerRepository_UpdateWorker_Success(t *testing.T) {
 		t.Fatalf("UpdateWorker returned error: %v", err)
 	}
 
-	if updated.ID != w.ID || updated.Person.FirstName != w.Person.FirstName {
+	if updated.ID != w.ID || updated.AccountID != w.AccountID || updated.Person.FirstName != w.Person.FirstName {
 		t.Fatalf("unexpected updated worker: %+v", updated)
 	}
 }
@@ -437,10 +454,22 @@ func TestWorkerRepository_UpdateWorker_NotFound(t *testing.T) {
 
 	ctx := context.Background()
 
-	w, _ := worker.NewWorker("Ivan", "Ivanov", "Ivanovich")
+	w := &worker.Worker{
+		ID:        uuid.New(),
+		AccountID: uuid.New(),
+		Person:    &person.Person{FirstName: "Иван", Surname: "Иванов", LastName: "Иванович"},
+		IsActive:  false,
+	}
 
-	mock.ExpectQuery("UPDATE workers").
-		WithArgs(w.ID, w.Person.FirstName, w.Person.Surname, w.Person.LastName, w.IsActive).
+	mock.ExpectQuery(
+		regexp.QuoteMeta(`
+	UPDATE workers
+	SET account_id = $2, first_name = $3, surname = $4, last_name = $5, is_active = $6, updated_at = now()
+	WHERE worker_id = $1
+	RETURNING worker_id, account_id, first_name, surname, last_name, is_active
+	`),
+	).
+		WithArgs(w.ID, w.AccountID, w.Person.FirstName, w.Person.Surname, w.Person.LastName, w.IsActive).
 		WillReturnError(sql.ErrNoRows)
 
 	_, err := repo.UpdateWorker(ctx, w)
@@ -455,13 +484,24 @@ func TestWorkerRepository_UpdateWorker_DBError(t *testing.T) {
 
 	ctx := context.Background()
 
-	w, _ := worker.NewWorker("Ivan", "Ivanov", "Ivanovich")
-	w.IsActive = true
+	w := &worker.Worker{
+		ID:        uuid.New(),
+		AccountID: uuid.New(),
+		Person:    &person.Person{FirstName: "Иван", Surname: "Иванов", LastName: "Иванович"},
+		IsActive:  true,
+	}
 
 	dbErr := errors.New("db error")
 
-	mock.ExpectQuery("UPDATE workers").
-		WithArgs(w.ID, w.Person.FirstName, w.Person.Surname, w.Person.LastName, w.IsActive).
+	mock.ExpectQuery(
+		regexp.QuoteMeta(`
+	UPDATE workers
+	SET account_id = $2, first_name = $3, surname = $4, last_name = $5, is_active = $6, updated_at = now()
+	WHERE worker_id = $1
+	RETURNING worker_id, account_id, first_name, surname, last_name, is_active
+	`),
+	).
+		WithArgs(w.ID, w.AccountID, w.Person.FirstName, w.Person.Surname, w.Person.LastName, w.IsActive).
 		WillReturnError(dbErr)
 
 	_, err := repo.UpdateWorker(ctx, w)
