@@ -14,4 +14,7 @@ var(
 	ErrAddressExists = errors.New("address already exists")
 	
 	ErrTaskNotFound = errors.New("task not found")
+
+	ErrAccountExists = errors.New("account already exists")
+	ErrAccountNotFound = errors.New("account not found")
 )
