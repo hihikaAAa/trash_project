@@ -172,7 +172,7 @@ func (a *accountRepository) ListByUserRole(ctx context.Context, role string) ([]
 	const q = `
 	SELECT account_id, email, password_hash, role
 	FROM accounts
-	WHERER role = $1
+	WHERE role = $1
 	`
 
 	rows, err := a.db.QueryContext(ctx, q, role)

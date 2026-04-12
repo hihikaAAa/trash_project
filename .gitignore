@@ -1,5 +1,4 @@
-/storage/storage.db
-
+# Binaries
 *.exe
 *.exe~
 *.dll
@@ -7,29 +6,26 @@
 *.dylib
 *.test
 *.out
-/bin/
-/build/
-/dist/
+trash_project
 
-*.coverprofile
-coverage.*
+# Go workspace file
+go.work
 
-*.log
-*.tmp
-tmp/
-*.swp
-
-.vscode/
+# IDE
 .idea/
-*.iml
+.vscode/
+*.swp
+*.swo
+*~
+.gocache/
 
+# OS
 .DS_Store
 Thumbs.db
 
-.env
-.env.*
-*.env
-local.env
-config/local.yaml
-*.key
-*.crt
+# Logs
+*.log
+
+# Build artifacts
+out/
+dist/

@@ -1,22 +1,21 @@
-
-
 // Package userservice
 package userservice
+
 /*
 import (
 	"context"
 	"database/sql"
 	"fmt"
 
-	"github.com/hihikaAAa/TrashProject/internal/domain/address"
-	"github.com/hihikaAAa/TrashProject/internal/domain/person"
-	"github.com/hihikaAAa/TrashProject/internal/domain/task"
-	"github.com/hihikaAAa/TrashProject/internal/domain/user"
-	dto "github.com/hihikaAAa/TrashProject/internal/dto"
-	addressrepo "github.com/hihikaAAa/TrashProject/internal/postgres/address_repo"
-	taskrepo "github.com/hihikaAAa/TrashProject/internal/postgres/task_repo"
-	userrepo "github.com/hihikaAAa/TrashProject/internal/postgres/user_repo"
-	errorswrapper "github.com/hihikaAAa/TrashProject/internal/service/errors_wrapper"
+	"github.com/hihikaAAa/trash_project/internal/domain/address"
+	"github.com/hihikaAAa/trash_project/internal/domain/person"
+	"github.com/hihikaAAa/trash_project/internal/domain/task"
+	"github.com/hihikaAAa/trash_project/internal/domain/user"
+	dto "github.com/hihikaAAa/trash_project/internal/dto"
+	addressrepo "github.com/hihikaAAa/trash_project/internal/postgres/address_repo"
+	taskrepo "github.com/hihikaAAa/trash_project/internal/postgres/task_repo"
+	userrepo "github.com/hihikaAAa/trash_project/internal/postgres/user_repo"
+	errorswrapper "github.com/hihikaAAa/trash_project/internal/service/errors_wrapper"
 )
 
 type UserService struct {

@@ -1,0 +1,32 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: trash_project__postgres
+    environment:
+      POSTGRES_USER: trash_project
+      POSTGRES_PASSWORD: trash_projectpass
+      POSTGRES_DB: trash_project
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U trash_project -d trash_project"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    image: trash_project:local
+    container_name: trash_project
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./data/config.docker.yml:/app/data/config.yml:ro
+    ports:
+      - "8001:8001"
+
+volumes:
+  pgdata:

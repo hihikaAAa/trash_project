@@ -1,25 +1,48 @@
+version: "2"
 run:
-  timeout: 3m
-
+  concurrency: 4
+  go: 1.25.0
+  issues-exit-code: 1
+  tests: true
 linters:
   enable:
-    - govet
-    - staticcheck
+    - asasalint
+    - asciicheck
+    - bidichk
+    - decorder
+    - dogsled
+    - dupword
+    - durationcheck
     - errcheck
+    - ginkgolinter
+    - gocheckcompilerdirectives
+    - gocritic
+    - govet
     - ineffassign
-    - revive
-    - gosimple
-    - unconvert
-    - unparam
-
-linters-settings:
-  revive:
-    rules:
-      - name: package-comments
-        disabled: true
-
-issues:
-  exclude-rules:
-    - path: _test\.go
-      linters:
-        - errcheck
+    - staticcheck
+    - unused
+    - contextcheck
+  settings:
+    govet:
+      enable-all: true
+    nolintlint:
+      require-explanation: true
+      require-specific: true
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
