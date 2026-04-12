@@ -29,15 +29,9 @@ type PostgreSQL struct {
 	SSLMode  string `mapstructure:"sslmode" yaml:"sslmode"`
 }
 
-type Trace struct {
-	Collector string `mapstructure:"collector" yaml:"collector"`
-	Enabled   bool   `mapstructure:"enabled" yaml:"enabled"`
-}
-
 type Configuration struct {
 	PostgreSQL PostgreSQL `mapstructure:"postgresql" yaml:"postgresql"`
 	Log        Logs       `mapstructure:"log" yaml:"log"`
-	Trace      Trace      `mapstructure:"trace" yaml:"trace"`
 	Server     Server     `mapstructure:"server" yaml:"server"`
 }
 

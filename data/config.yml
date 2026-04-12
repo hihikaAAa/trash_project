@@ -1,0 +1,16 @@
+server:
+  service_name: trash_project-service
+  port: 8001
+  secret: "change-me-in-production"
+  mode: "release"
+
+postgresql:
+  host: "localhost"
+  port: "5432"
+  user: "trash_project"
+  pass: "trash_projectpass"
+  database: "trash_project"
+  sslmode: "disable"
+
+log:
+  event_path: "./logs/business_events.log"

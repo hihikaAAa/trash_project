@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	domainerrors "github.com/hihikaAAa/TrashProject/internal/domain/domain_errors"
+	"github.com/hihikaAAa/trash_project/internal/domain_errors"
 )
 
 const availableLocal = "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM0123456789.-!#$%&*/=?^{|}~_+"
