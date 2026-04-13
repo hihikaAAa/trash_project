@@ -7,8 +7,8 @@ import (
 	"log"
 	"os"
 
-	"trash_project/migrations"
-	appconfig "trash_project/pkg/config"
+	"github.com/hihikaAAa/trash_project/migrations"
+	appconfig "github.com/hihikaAAa/trash_project/pkg/config"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"

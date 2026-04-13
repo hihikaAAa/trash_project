@@ -5,8 +5,8 @@ import (
 	"context"
 	"fmt"
 
-	"trash_project/pkg/config"
-	"trash_project/pkg/database/postgres"
+	"github.com/hihikaAAa/trash_project/pkg/config"
+	"github.com/hihikaAAa/trash_project/pkg/database/postgres"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )

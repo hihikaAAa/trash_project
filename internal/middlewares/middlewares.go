@@ -2,12 +2,11 @@
 package middlewares
 
 import (
-	"abr_paperless_office/internal/metrics"
-	"errors"
 	"fmt"
-	"net/http"
 	"strings"
 	"time"
+
+	"github.com/hihikaAAa/trash_project/internal/metrics"
 
 	"github.com/gin-gonic/gin"
 )
@@ -71,31 +70,5 @@ func NoMethodHandler() gin.HandlerFunc {
 func NoRouteHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.JSON(404, gin.H{"errorCode": "not found", "errorMessage": "method not found"})
-	}
-}
-
-func AccessByPermission(group *[]string) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.Next()
-		acc := false
-		if grc, ok := c.Get("user_group"); ok == true {
-			if group == nil {
-				group = &[]string{"admin", "user"}
-			}
-			if grc == "close" {
-				http_res.NewError(c, http.StatusForbidden, errors.New("access denied"))
-				return
-			}
-			for _, n := range *group {
-				if grc == n {
-					acc = true
-				}
-			}
-		}
-		if !acc {
-			http_res.NewError(c, http.StatusForbidden, errors.New("access denied"))
-			return
-		}
-		c.Next()
 	}
 }

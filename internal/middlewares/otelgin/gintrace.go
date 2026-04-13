@@ -6,9 +6,9 @@
 package otelgin // import "go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 
 import (
-	"abr_paperless_office/internal/middlewares/otelgin/internal/semconvutil"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/hihikaAAa/trash_project/internal/middlewares/otelgin/internal/semconvutil"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"

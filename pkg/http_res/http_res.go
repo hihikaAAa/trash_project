@@ -15,6 +15,8 @@ const (
 	CodeServiceNotAvailable = "ServiceNotAvailable"
 	CodeDenied              = "denied"
 	CodeBadRequest          = "badRequest"
+	CodeNotFound            = "notFound"
+	CodeConflict            = "conflict"
 )
 
 type HTTPError struct {
@@ -75,4 +77,8 @@ func HandleDomainError(ctx *gin.Context, err error, metric *prometheus.CounterVe
 	_ = ctx.Error(err).SetType(gin.ErrorTypePrivate)
 	cerr := errors.New("Что-то пошло не так")
 	NewError(ctx, http.StatusInternalServerError, CodeServiceNotAvailable, cerr)
+}
+
+func HandleDomainErrors(ctx *gin.Context, err error, metric *prometheus.CounterVec) {
+	HandleDomainError(ctx, err, metric)
 }

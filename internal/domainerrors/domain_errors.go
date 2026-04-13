@@ -3,42 +3,86 @@ package domainerrors
 
 import (
 	"errors"
+	"net/http"
+
+	httpres "github.com/hihikaAAa/trash_project/pkg/http_res"
 )
 
-var(
-	ErrTaskCanceled = errors.New("task was already canceled")
-	ErrTaskDone = errors.New("task was already done")
-	ErrTaskNotInProgress = errors.New("can complete only task, which is in progress")
-	ErrTaskIsNotOpen = errors.New("can start only task, which is open")
-	ErrTaskNotFound = errors.New("task is not found")
-	ErrBadTaskInfo = errors.New("bad task info")
-	ErrBadTaskTime = errors.New("bad task time")
-	ErrBadTaskStatus = errors.New("bad task status")
-	ErrBadTaskWorker = errors.New("bad task worker")
-	ErrEmptyAccountID = errors.New("empty account id ")
+var (
+	ErrForbidden = httpres.NewHTTPError(
+		errors.New("Доступ запрещен"),
+		http.StatusForbidden,
+		httpres.CodeDenied,
+		"denied",
+	)
 
-	ErrWorkerNotFound = errors.New("worker not found")
-	ErrWorkerExists = errors.New("worker exists")
-	ErrWorkerNotActive = errors.New("worker not active")
-	ErrTaskAlreadyAssigned = errors.New("task already assigned")
-	ErrWorkerAlreadyActive = errors.New("worker already active")
-	ErrWorkerAlreadyDeactive = errors.New("worker already deactive")
+	ErrTaskNotFound = httpres.NewHTTPError(
+		errors.New("Задача не найдена"),
+		http.StatusNotFound,
+		httpres.CodeNotFound,
+		"not_found",
+	)
 
-	ErrUserExists = errors.New("user already exists")
-	ErrUserNotFound = errors.New("user not found")
-	ErrEmptyID = errors.New("empty required id")
+	ErrWrongRole = httpres.NewHTTPError(
+		errors.New("Неправильная роль"),
+		http.StatusForbidden,
+		httpres.CodeDenied,
+		"denied",
+	)
 
-	ErrAddressNotFound = errors.New("address not found")
-	ErrAddressExists = errors.New("address exists")
-	ErrBadFloorNumber = errors.New("bad floor number")
-	ErrBadApartmentNumber = errors.New("bad apartment number")
-	ErrBadStreet = errors.New("bad street")
-	ErrBadHouseNumber = errors.New("bad house number")
-	ErrBadEntrance = errors.New("bad entrance")
+	ErrBadTaskInfo = httpres.NewHTTPError(
+		errors.New("Невалидное тело запроса задачи"),
+		http.StatusBadRequest,
+		httpres.CodeBadRequest,
+		"bad_request",
+	)
+	ErrBadTaskTime = httpres.NewHTTPError(
+		errors.New("Невалидное время задачи"),
+		http.StatusBadRequest,
+		httpres.CodeBadRequest,
+		"bad_request",
+	)
+	ErrBadTaskWorker = httpres.NewHTTPError(
+		errors.New("Невалидный работник"),
+		http.StatusBadRequest,
+		httpres.CodeBadRequest,
+		"bad_request",
+	)
+	ErrBadTaskAddress = httpres.NewHTTPError(
+		errors.New("Невалидный адрес задачи"),
+		http.StatusBadRequest,
+		httpres.CodeBadRequest,
+		"bad_request",
+	)
+	ErrBadTaskDescription = httpres.NewHTTPError(
+		errors.New("невалидное описание задачи"),
+		http.StatusBadRequest,
+		httpres.CodeBadRequest,
+		"bad_request",
+	)
 
-	ErrBadNamePart = errors.New("bad name")
-	ErrBadLastName = errors.New("bad last name")
-
-	ErrWrongRole = errors.New("wrong role")
-	ErrBadEmail = errors.New("bad email")
+	ErrInvalidStatusTransition = httpres.NewHTTPError(
+		errors.New("Невалидный статус"),
+		http.StatusConflict,
+		httpres.CodeConflict,
+		"conflict",
+	)
+	ErrTaskCanceled = httpres.NewHTTPError(
+		errors.New("задача уже отменена"),
+		http.StatusConflict,
+		httpres.CodeConflict,
+		"conflict",
+	)
+	ErrTaskDone = httpres.NewHTTPError(
+		errors.New("Задача уже выполнена"),
+		http.StatusConflict,
+		httpres.CodeConflict,
+		"conflict",
+	)
+	ErrTaskNotInProgress = httpres.NewHTTPError(
+		errors.New("Завершить можно только ту задачу, которая в процессе исполнения"),
+		http.StatusConflict,
+		httpres.CodeConflict,
+		"conflict",
+	)
 )

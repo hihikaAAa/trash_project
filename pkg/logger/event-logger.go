@@ -91,7 +91,7 @@ func (w *bodyWriter) WriteString(s string) (int, error) {
 
 func EventMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if !strings.HasPrefix(c.Request.URL.Path, "/api/v1") && !strings.HasPrefix(c.Request.URL.Path, "/paper/api/v1/") {
+		if !strings.HasPrefix(c.Request.URL.Path, "/trash/api/v1") && !strings.HasPrefix(c.Request.URL.Path, "/paper/api/v1/") {
 			c.Next()
 			return
 		}

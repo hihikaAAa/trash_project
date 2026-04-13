@@ -1,8 +1,7 @@
 package main
 
 import (
-	_ "trash_project/docs"
-	"trash_project/internal/app"
+	"github.com/hihikaAAa/trash_project/internal/app"
 )
 
 // @Golang Trash_project Service

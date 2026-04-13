@@ -4,12 +4,12 @@ package handler
 import (
 	"net/http"
 
-	v1 "abr_paperless_office/internal/handlers/v1"
-	"abr_paperless_office/internal/middlewares"
-	"abr_paperless_office/internal/middlewares/otelgin"
-	"abr_paperless_office/internal/service"
-	"abr_paperless_office/pkg/config"
-	logger "abr_paperless_office/pkg/logger"
+	v1 "github.com/hihikaAAa/trash_project/internal/handlers/v1"
+	"github.com/hihikaAAa/trash_project/internal/middlewares"
+	"github.com/hihikaAAa/trash_project/internal/middlewares/otelgin"
+	"github.com/hihikaAAa/trash_project/internal/service"
+	"github.com/hihikaAAa/trash_project/pkg/config"
+	logger "github.com/hihikaAAa/trash_project/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -40,6 +40,7 @@ func (h *Handler) Init() *gin.Engine {
 		logger.GinMiddleware(),
 		gin.Recovery(),
 		middlewares.CORS(),
+		middlewares.InjectActorFromCookies(),
 		rl.RateLimitMiddleware(),
 		middlewares.APILatencyMiddleware(),
 	)

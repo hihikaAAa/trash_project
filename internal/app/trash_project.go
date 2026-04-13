@@ -10,27 +10,17 @@ import (
 	"net/http"
 	"time"
 
-	"abr_paperless_office/internal/handlers"
-	"abr_paperless_office/internal/metrics"
-	"abr_paperless_office/internal/models"
-	adapters "abr_paperless_office/internal/repositories"
-	"abr_paperless_office/internal/service"
-	appconfig "abr_paperless_office/pkg/config"
-	"abr_paperless_office/pkg/database"
-	"abr_paperless_office/pkg/logger"
-	"abr_paperless_office/pkg/server"
+	handler "github.com/hihikaAAa/trash_project/internal/handlers"
+	adapters "github.com/hihikaAAa/trash_project/internal/repositories"
+	"github.com/hihikaAAa/trash_project/internal/service"
+	appconfig "github.com/hihikaAAa/trash_project/pkg/config"
+	"github.com/hihikaAAa/trash_project/pkg/database"
+	"github.com/hihikaAAa/trash_project/pkg/logger"
+	"github.com/hihikaAAa/trash_project/pkg/server"
 
 	_ "time/tzdata"
 
-	"github.com/jackc/pgx/v5/pgxpool"
 	cnf "github.com/peak/go-config"
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
-	"go.opentelemetry.io/otel/sdk/resource"
-	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	"google.golang.org/grpc/credentials"
 )
 
 const ConfigPath = "data/config.yml"
@@ -61,9 +51,9 @@ func Run() {
 		}
 
 		rep := adapters.NewRepository(pool)
-		services := service.NewService(rep, crmClient)
-		handlers := handler.NewHandler(services, cfg)
-		srv := server.NewServer(cfg, handlers.Init(), ConfigPath)
+		services := service.NewService(rep)
+		h := handler.NewHandler(services, cfg)
+		srv := server.NewServer(cfg, h.Init(), ConfigPath)
 
 		runErrCh := make(chan error, 1)
 		go func() {

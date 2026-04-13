@@ -5,7 +5,7 @@ import (
 	"context"
 	"net/http"
 
-	"trash_project/pkg/config"
+	"github.com/hihikaAAa/trash_project/pkg/config"
 )
 
 type Server struct {

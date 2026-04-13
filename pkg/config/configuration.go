@@ -33,6 +33,7 @@ type Configuration struct {
 	PostgreSQL PostgreSQL `mapstructure:"postgresql" yaml:"postgresql"`
 	Log        Logs       `mapstructure:"log" yaml:"log"`
 	Server     Server     `mapstructure:"server" yaml:"server"`
+	Trace      Trace      `mapstructure:"trace" yaml:"trace"`
 }
 
 type Logs struct {
@@ -42,6 +43,10 @@ type Logs struct {
 	EsIndex   string `mapstructure:"es_index" yaml:"es_index"`
 	Path      string `mapstructure:"path" yaml:"path"`
 	EventPath string `mapstructure:"event_path" yaml:"event_path"`
+}
+
+type Trace struct {
+	Enabled bool `mapstructure:"enabled" yaml:"enabled"`
 }
 
 func Setup(configPath string) {

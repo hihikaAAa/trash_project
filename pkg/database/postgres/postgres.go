@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"abr_paperless_office/pkg/config"
+	"github.com/hihikaAAa/trash_project/pkg/config"
 
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -39,7 +39,6 @@ func ConnectDB(ctx context.Context, pg config.PostgreSQL) (*pgxpool.Pool, error)
 	if err != nil {
 		return nil, fmt.Errorf("connect: %w", err)
 	}
-
 	if err := pool.Ping(ctx); err != nil {
 		pool.Close()
 		return nil, fmt.Errorf("ping: %w", err)
